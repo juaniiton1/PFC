@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">PFC Version 1</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+
+    <string-array name="array_colors_led">
+        <item>Black</item>
+        <item>Blue</item>
+        <item>Green</item>
+        <item>Cyan</item>
+        <item>Red</item>
+        <item>Magenta</item>
+        <item>Yellow</item>
+        <item>White</item>
+    </string-array>
+
+    <string name="title_activity_color_picker">ColorPickerActivity</string>
+
+</resources>
