@@ -9,6 +9,7 @@ protected:
 	cocos2d::CCArray *_targets;
 	cocos2d::CCArray *_projectiles;
 	int _projectilesDestroyed;
+	cocos2d::CCSprite *_colorButton;
 
 public:
 
@@ -33,6 +34,7 @@ public:
     void gameLogic(float dt);
     void ccTouchesEnded(cocos2d::CCSet* touches, cocos2d::CCEvent* event);
     void update(float dt);
+    void chartboostInterstitialCallback(CCObject* pSender);
 };
 
 #endif // __HELLOWORLD_SCENE_H__

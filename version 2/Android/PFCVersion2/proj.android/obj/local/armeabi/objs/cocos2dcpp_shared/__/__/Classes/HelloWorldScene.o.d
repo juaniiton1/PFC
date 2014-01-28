@@ -206,7 +206,11 @@ obj/local/armeabi/objs/cocos2dcpp_shared/__/__/Classes/HelloWorldScene.o: \
  /Users/Joan/Development/cocos2d-x-2.2.2/projects/PFCVersion2/proj.android/../../../cocos2dx/support/component/CCComponentContainer.h \
  /Users/Joan/Development/cocos2d-x-2.2.2/projects/PFCVersion2/proj.android/../../../CocosDenshion/android/../include/SimpleAudioEngine.h \
  /Users/Joan/Development/cocos2d-x-2.2.2/projects/PFCVersion2/proj.android/../../../CocosDenshion/android/../include/Export.h \
- jni/../../Classes/GameOverScene.h
+ jni/../../Classes/GameOverScene.h \
+ jni/../../Classes/NDKHelper/NDKHelper.h \
+ jni/../../Classes/jansson/jansson.h \
+ jni/../../Classes/jansson/jansson_config.h \
+ jni/../../Classes/NDKHelper/NDKCallbackNode.h
 
 jni/../../Classes/HelloWorldScene.h:
 
@@ -621,3 +625,11 @@ jni/../../Classes/HelloWorldScene.h:
 /Users/Joan/Development/cocos2d-x-2.2.2/projects/PFCVersion2/proj.android/../../../CocosDenshion/android/../include/Export.h:
 
 jni/../../Classes/GameOverScene.h:
+
+jni/../../Classes/NDKHelper/NDKHelper.h:
+
+jni/../../Classes/jansson/jansson.h:
+
+jni/../../Classes/jansson/jansson_config.h:
+
+jni/../../Classes/NDKHelper/NDKCallbackNode.h:

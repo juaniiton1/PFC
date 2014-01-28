@@ -1,6 +1,7 @@
 #include "HelloWorldScene.h"
 #include "SimpleAudioEngine.h"
 #include "GameOverScene.h"
+#include "NDKHelper.h"
 
 USING_NS_CC;
 
@@ -19,7 +20,7 @@ CCScene* HelloWorld::scene()
     return scene;
 }
 
-HelloWorld::HelloWorld():_targets(NULL), _projectiles(NULL)
+HelloWorld::HelloWorld():_targets(NULL), _projectiles(NULL), _colorButton(NULL)
 {
 	_projectilesDestroyed = 0;
 }
@@ -34,6 +35,10 @@ HelloWorld::~HelloWorld()
 		_projectiles->release();
 		_projectiles = NULL;
 	}
+	if (_colorButton) {
+		_colorButton->release();
+		_colorButton = NULL;
+	}
 }
 
 // on "init" you need to initialize your instance
@@ -42,7 +47,7 @@ bool HelloWorld::init()
 
 	//////////////////////////////
 	// 1. super init first
-	if ( !CCLayerColor::initWithColor( ccc4(255,255,255,255) ) )
+	if ( !CCLayerColor::initWithColor( ccc4(100, 100, 100, 255) ) )
 	{
 		return false;
 	}
@@ -56,23 +61,44 @@ bool HelloWorld::init()
 
 	// add a "close" icon to exit the progress. it's an autorelease object
 	CCMenuItemImage *pCloseItem = CCMenuItemImage::create(
-										"CloseNormal.png",
-										"CloseSelected.png",
-										this,
+										"CloseNormal.png", "CloseSelected.png", this,
 										menu_selector(HelloWorld::menuCloseCallback));
 
 	pCloseItem->setPosition(ccp(origin.x + visibleSize.width - pCloseItem->getContentSize().width/2 ,
 								origin.y + pCloseItem->getContentSize().height/2));
 
 	// create menu, it's an autorelease object
-	CCMenu* pMenu = CCMenu::create(pCloseItem, NULL);
+	//CCMenu* pMenu = CCMenu::create(pCloseItem, NULL);
+	//pMenu->setPosition(CCPointZero);
+	//this->addChild(pMenu, 1);
+
+
+	/******************************
+	 ** BOTON CHARTBOOST EASYNDK **
+	 ******************************/
+
+	// Chartboost button to load interstitial
+	CCMenuItemImage *pChartBoostItem = CCMenuItemImage::create(
+											"sample_pin.png", "sample_pin.png", this,
+											menu_selector(HelloWorld::chartboostInterstitialCallback) );
+	// Adjust Chartboost button
+	pChartBoostItem->setPosition( ccp(CCDirector::sharedDirector()->getWinSize().width - 80, 20) );
+
+	// create menu, it's an autorelease object
+	CCMenu* pMenu = CCMenu::create(pCloseItem, pChartBoostItem, NULL);
 	pMenu->setPosition(CCPointZero);
 	this->addChild(pMenu, 1);
+	/******************************/
 
 	/////////////////////////////
 	// 3. add your codes below...
 
-	CocosDenshion::SimpleAudioEngine::sharedEngine()->playBackgroundMusic(
+	_colorButton = CCSprite::create( "LED.png", CCRectMake(0,0,200,200) );
+	_colorButton->setPosition( ccp( origin.x + visibleSize.width/2, origin.y + visibleSize.height/2) );
+	this->addChild(_colorButton);
+
+	/************************************
+	 * CocosDenshion::SimpleAudioEngine::sharedEngine()->playBackgroundMusic(
 			"background-music-aac.wav", true);
 
 
@@ -86,12 +112,20 @@ bool HelloWorld::init()
 
     // Call game logic about every second
     this->schedule( schedule_selector(HelloWorld::gameLogic), 1.0 );
-
     this->schedule( schedule_selector(HelloWorld::update) );
+    ************************************/
 
     this->setTouchEnabled(true);
 
     return true;
+}
+
+void HelloWorld::chartboostInterstitialCallback(CCObject* pSender)
+{
+	// If you want to load interstitial in your desired platform
+	// Simply message the platform to do it for you
+	// Like this
+	SendMessageWithParams(string("LoadInterstitial"), NULL);
 }
 
 void HelloWorld::addTarget()
@@ -159,6 +193,12 @@ void HelloWorld::ccTouchesEnded(CCSet* touches, CCEvent* event)
 	CCPoint location = touch->getLocationInView();
 	location = CCDirector::sharedDirector()->convertToGL(location);
 
+	if (_colorButton->boundingBox().containsPoint(location))
+	{
+		_colorButton->setColor( ccc3(255,0,0) );
+	}
+
+	/******************************************************
 	// Set up initial location of projectile
 	CCSize winSize = CCDirector::sharedDirector()->getWinSize();
 	CCSprite *projectile = CCSprite::create("Projectile.png", CCRectMake(0,0,20,20));
@@ -194,6 +234,7 @@ void HelloWorld::ccTouchesEnded(CCSet* touches, CCEvent* event)
 			CCMoveTo::create(realMoveDuration, realDest),
 			CCCallFuncN::create(this, callfuncN_selector(HelloWorld::spriteMoveFinished)),
 			NULL) );
+	******************************************************/
 }
 
 void HelloWorld::update(float dt)
