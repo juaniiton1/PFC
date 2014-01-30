@@ -20,7 +20,7 @@ CCScene* HelloWorld::scene()
     return scene;
 }
 
-HelloWorld::HelloWorld():_targets(NULL), _projectiles(NULL), _colorButton(NULL)
+HelloWorld::HelloWorld():_targets(NULL), _projectiles(NULL), _leds(NULL), _palette(NULL), _ledSelected(NULL)
 {
 	_projectilesDestroyed = 0;
 }
@@ -35,9 +35,17 @@ HelloWorld::~HelloWorld()
 		_projectiles->release();
 		_projectiles = NULL;
 	}
-	if (_colorButton) {
-		_colorButton->release();
-		_colorButton = NULL;
+	if (_leds) {
+		_leds->release();
+		_leds = NULL;
+	}
+	if (_palette) {
+		_palette->release();
+		_palette = NULL;
+	}
+	if (_ledSelected) {
+		_ledSelected->release();
+		_ledSelected = NULL;
 	}
 }
 
@@ -68,14 +76,14 @@ bool HelloWorld::init()
 								origin.y + pCloseItem->getContentSize().height/2));
 
 	// create menu, it's an autorelease object
-	//CCMenu* pMenu = CCMenu::create(pCloseItem, NULL);
-	//pMenu->setPosition(CCPointZero);
-	//this->addChild(pMenu, 1);
+	// CCMenu* pMenu = CCMenu::create(pCloseItem, NULL);
+	// pMenu->setPosition(CCPointZero);
+	// this->addChild(pMenu, 1);
 
 
 	/******************************
 	 ** BOTON CHARTBOOST EASYNDK **
-	 ******************************/
+	 ******************************
 
 	// Chartboost button to load interstitial
 	CCMenuItemImage *pChartBoostItem = CCMenuItemImage::create(
@@ -88,17 +96,47 @@ bool HelloWorld::init()
 	CCMenu* pMenu = CCMenu::create(pCloseItem, pChartBoostItem, NULL);
 	pMenu->setPosition(CCPointZero);
 	this->addChild(pMenu, 1);
-	/******************************/
+	******************************/
 
 	/////////////////////////////
 	// 3. add your codes below...
 
-	_colorButton = CCSprite::create( "LED.png", CCRectMake(0,0,200,200) );
-	_colorButton->setPosition( ccp( origin.x + visibleSize.width/2, origin.y + visibleSize.height/2) );
-	this->addChild(_colorButton);
+	_leds = new CCArray;
 
-	/************************************
-	 * CocosDenshion::SimpleAudioEngine::sharedEngine()->playBackgroundMusic(
+	CCSprite *led1 = CCSprite::create( "LED.png", CCRectMake(0,0,120,120) );
+	led1->setPosition( ccp( origin.x + 60, origin.y + (visibleSize.height/3) * 2) );
+	_leds->addObject(led1);
+	this->addChild(led1);
+
+	CCSprite *led2 = CCSprite::create( "LED.png", CCRectMake(0,0,120,120) );
+	led2->setPosition( ccp( origin.x + 180, origin.y + (visibleSize.height/3) * 2) );
+	_leds->addObject(led2);
+	this->addChild(led2);
+
+	CCSprite *led3 = CCSprite::create( "LED.png", CCRectMake(0,0,120,120) );
+	led3->setPosition( ccp( origin.x + 300, origin.y + (visibleSize.height/3) * 2) );
+	_leds->addObject(led3);
+	this->addChild(led3);
+
+	CCSprite *led4 = CCSprite::create( "LED.png", CCRectMake(0,0,120,120) );
+	led4->setPosition( ccp( origin.x + 420, origin.y + (visibleSize.height/3) * 2) );
+	_leds->addObject(led4);
+	this->addChild(led4);
+
+	CCSprite *led5 = CCSprite::create( "LED.png", CCRectMake(0,0,120,120) );
+	led5->setPosition( ccp( origin.x + 540, origin.y + (visibleSize.height/3) * 2) );
+	_leds->addObject(led5);
+	this->addChild(led5);
+
+	_palette = CCSprite::create( "256colour.png", CCRectMake(0,0,512,128) );
+	// palette->setPosition( ccp( origin.x + visibileSize.height/2, origin.y + visibleSize.height/3 ) );
+	_palette->setPosition( ccp( origin.x + 256, origin.y + 64 ) );
+	this->addChild(_palette);
+
+	/* ***********************************
+	 * El juego de ejemplo
+	 *
+	 CocosDenshion::SimpleAudioEngine::sharedEngine()->playBackgroundMusic(
 			"background-music-aac.wav", true);
 
 
@@ -113,6 +151,7 @@ bool HelloWorld::init()
     // Call game logic about every second
     this->schedule( schedule_selector(HelloWorld::gameLogic), 1.0 );
     this->schedule( schedule_selector(HelloWorld::update) );
+
     ************************************/
 
     this->setTouchEnabled(true);
@@ -125,7 +164,11 @@ void HelloWorld::chartboostInterstitialCallback(CCObject* pSender)
 	// If you want to load interstitial in your desired platform
 	// Simply message the platform to do it for you
 	// Like this
-	SendMessageWithParams(string("LoadInterstitial"), NULL);
+    CCDictionary* prms = CCDictionary::create();
+    prms->setObject(CCString::create("Hola caracola si funciona guay! :D"), "text_to_toast");
+
+    // Finally call the native method in current environment
+    SendMessageWithParams(string("SampleSelectorWithData"), prms);
 }
 
 void HelloWorld::addTarget()
@@ -185,20 +228,42 @@ void HelloWorld::gameLogic(float dt)
 
 void HelloWorld::ccTouchesEnded(CCSet* touches, CCEvent* event)
 {
-	CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect(
-			"pew-pew-lei.wav");
-
 	// Choose one of the touches to work with
 	CCTouch* touch = (CCTouch*)( touches->anyObject() );
 	CCPoint location = touch->getLocationInView();
 	location = CCDirector::sharedDirector()->convertToGL(location);
 
-	if (_colorButton->boundingBox().containsPoint(location))
+	if ( _ledSelected != NULL and _palette->boundingBox().containsPoint(location) )
 	{
-		_colorButton->setColor( ccc3(255,0,0) );
+		CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect("pew-pew-lei.wav");
+		int locX = location.x;
+		int locY = location.y;
+		CCLOG("X:%d Y:%d", locX, locY);
+		int red = (locX / 72) * 36;
+		int green = 255 - ( (locY / 18) * 36 );
+		int blue = ( (locX % 64) / 16) * 85;
+		_ledSelected->setColor( ccc3(red, green, blue) );
+
+	} else
+	{
+		CCObject *it = NULL;
+		int i = 1;
+		CCARRAY_FOREACH(_leds, it)
+		{
+			CCSprite *led = dynamic_cast<CCSprite*>(it);
+			if (led->boundingBox().containsPoint(location))
+			{
+				_ledSelected = led;
+				//led->setColor( ccc3(255,0,0) );
+			}
+			i++;
+		}
 	}
 
+
 	/******************************************************
+	 * Juego de ejemplo
+	 *
 	// Set up initial location of projectile
 	CCSize winSize = CCDirector::sharedDirector()->getWinSize();
 	CCSprite *projectile = CCSprite::create("Projectile.png", CCRectMake(0,0,20,20));
@@ -234,6 +299,7 @@ void HelloWorld::ccTouchesEnded(CCSet* touches, CCEvent* event)
 			CCMoveTo::create(realMoveDuration, realDest),
 			CCCallFuncN::create(this, callfuncN_selector(HelloWorld::spriteMoveFinished)),
 			NULL) );
+
 	******************************************************/
 }
 

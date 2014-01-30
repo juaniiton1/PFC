@@ -9,7 +9,9 @@ protected:
 	cocos2d::CCArray *_targets;
 	cocos2d::CCArray *_projectiles;
 	int _projectilesDestroyed;
-	cocos2d::CCSprite *_colorButton;
+	cocos2d::CCArray *_leds;
+	cocos2d::CCSprite *_palette;
+	cocos2d::CCSprite *_ledSelected;
 
 public:
 
