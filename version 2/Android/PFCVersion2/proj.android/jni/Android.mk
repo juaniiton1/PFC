@@ -10,6 +10,9 @@ LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../Classes/AppDelegate.cpp \
                    ../../Classes/HelloWorldScene.cpp \
                    ../../Classes/GameOverScene.cpp \
+                   ../../Classes/GameScene.cpp \
+                   ../../Classes/OptionsScene.cpp \
+                   ../../Classes/GameManager.cpp \
                    ../../Classes/jansson/dump.c \
                    ../../Classes/jansson/error.c \
                    ../../Classes/jansson/hashtable.c \

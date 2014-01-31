@@ -62,6 +62,46 @@ public class PFCVersion2 extends Cocos2dxActivity{
     	Toast.makeText(this, textToToast, Toast.LENGTH_SHORT).show();
     }
     
+    public void SendColors(JSONObject prms) throws JSONException
+    {
+    	Log.i("PRMS:", prms.toString());
+    }
+    
+    public void SelectorConnect(JSONObject prms) throws JSONException
+    {
+    	String ip = prms.getString("ip");
+    	String port = prms.getString("port");
+    	new ConnectSocket(PFCVersion2.this).execute(ip, port);
+    }
+    
+    public void ConnectionOk()
+    {
+    	Toast.makeText(this, "BIEN!", Toast.LENGTH_SHORT).show();
+    	this.runOnGLThread(new Runnable()
+    	{
+    		@Override
+    		public void run()
+    		{
+    			// TODO Auto-generated method stub
+    			AndroidNDKHelper.SendMessageWithParameters("connectionOk", null);
+    		}
+		});
+    }
+    
+    public void ConnectionError()
+    {
+    	Toast.makeText(this, "MIERDA :/ pero bien :D", Toast.LENGTH_SHORT).show();
+    	this.runOnGLThread(new Runnable()
+    	{
+    		@Override
+    		public void run()
+    		{
+    			// TODO Auto-generated method stub
+    			AndroidNDKHelper.SendMessageWithParameters("connectionError", null);
+    		}
+		});
+    }
+    
 //    public void ChangeSomethingInCocos()
 //    {
 //        // If you want to change anything that cocos handles, please run it on GLThread

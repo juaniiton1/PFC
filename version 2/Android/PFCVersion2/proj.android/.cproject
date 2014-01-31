@@ -88,6 +88,7 @@
 					<sourceEntries>
 						<entry excluding="scripting|extensions|cocos2dx|Classes" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Classes"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="extensions"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
