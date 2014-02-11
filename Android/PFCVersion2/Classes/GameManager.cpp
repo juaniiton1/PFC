@@ -16,6 +16,7 @@ GameManager::GameManager()
 	connected = false;
 	ip = "0.0.0.0";
 	port = "0";
+	nLeds = 4;
 }
 
 GameManager* GameManager::sharedGameManager()
@@ -51,7 +52,6 @@ void GameManager::setIp(const char* c)
 	ip = c;
 }
 
-
 const char* GameManager::getPort()
 {
 	return port;
@@ -60,4 +60,14 @@ const char* GameManager::getPort()
 void GameManager::setPort(const char* c)
 {
 	port = c;
+}
+
+int GameManager::getNLeds()
+{
+	return nLeds;
+}
+
+void GameManager::setNLeds(int n)
+{
+	nLeds = n;
 }

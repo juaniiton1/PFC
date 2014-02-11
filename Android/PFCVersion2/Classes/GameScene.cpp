@@ -7,12 +7,12 @@
 
 #include "GameScene.h"
 #include "SimpleAudioEngine.h"
-#include "GameOverScene.h"
 #include "GameManager.h"
 #include "HelloWorldScene.h"
 #include "NDKHelper.h"
 
 USING_NS_CC;
+USING_NS_CC_EXT;
 
 CCScene* GameScene::scene()
 {
@@ -31,6 +31,7 @@ CCScene* GameScene::scene()
 
 GameScene::GameScene():_leds(NULL), _palette(NULL), _ledSelected(NULL), _labelConnected(NULL)
 {
+	_indexLed = -1;
 }
 
 GameScene::~GameScene()
@@ -53,7 +54,7 @@ GameScene::~GameScene()
 // on "init" you need to initialize your instance
 bool GameScene::init()
 {
-	if ( !CCLayerColor::initWithColor( ccc4(100, 100, 100, 255) ) )
+	if ( !CCLayer::init() )
 	{
 		return false;
 	}
@@ -61,64 +62,51 @@ bool GameScene::init()
 	CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
 	CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
 
-	_leds = new CCArray;
+	// Fondo con la textura de madera
+	CCTexture2D *texture = CCTextureCache::sharedTextureCache()->addImage("purty_wood.png");
+	ccTexParams tp = { GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
+	texture->setTexParameters(&tp);
+	CCSprite *background = CCSprite::createWithTexture(texture, CCRectMake(0, 0, visibleSize.width, visibleSize.height));
+	background->setPosition( ccp( visibleSize.width/2, visibleSize.height/2 ) );
 
-	CCSprite *led1 = CCSprite::create( "LED.png", CCRectMake(0,0,120,120) );
-	led1->setPosition( ccp( origin.x + 60, origin.y + (visibleSize.height/3) * 2) );
-	_leds->addObject(led1);
-	this->addChild(led1);
+	this->addChild(background, 1);
 
-	CCSprite *led2 = CCSprite::create( "LED.png", CCRectMake(0,0,120,120) );
-	led2->setPosition( ccp( origin.x + 180, origin.y + (visibleSize.height/3) * 2) );
-	_leds->addObject(led2);
-	this->addChild(led2);
+	//LedsLayer *pLayer = LedsLayer::create();
+	//this->addChild(pLayer, 5);
 
-	CCSprite *led3 = CCSprite::create( "LED.png", CCRectMake(0,0,120,120) );
-	led3->setPosition( ccp( origin.x + 300, origin.y + (visibleSize.height/3) * 2) );
-	_leds->addObject(led3);
-	this->addChild(led3);
-
-	CCSprite *led4 = CCSprite::create( "LED.png", CCRectMake(0,0,120,120) );
-	led4->setPosition( ccp( origin.x + 420, origin.y + (visibleSize.height/3) * 2) );
-	_leds->addObject(led4);
-	this->addChild(led4);
-
-	CCSprite *led5 = CCSprite::create( "LED.png", CCRectMake(0,0,120,120) );
-	led5->setPosition( ccp( origin.x + 540, origin.y + (visibleSize.height/3) * 2) );
-	_leds->addObject(led5);
-	this->addChild(led5);
+	CCTableView* tableView = CCTableView::create(this, CCSizeMake(visibleSize.width, visibleSize.height/3));
+	tableView->setDirection(kCCScrollViewDirectionHorizontal);
+	tableView->setPosition(ccp(10, visibleSize.height/3));
+	tableView->setDelegate(this);
+	this->addChild(tableView, 5);
+	tableView->reloadData();
 
 	_palette = CCSprite::create( "256colour.png", CCRectMake(0,0,512,128) );
-	// palette->setPosition( ccp( origin.x + visibileSize.height/2, origin.y + visibleSize.height/3 ) );
 	_palette->setPosition( ccp( origin.x + 256, origin.y + 64 ) );
-	this->addChild(_palette);
+	this->addChild(_palette, 5);
 
 	bool connected = GameManager::sharedGameManager()->getConnected();
 
 	if (connected) {
-		_labelConnected = CCLabelTTF::create("Conectado!", "Helvetica", 30,
-											 CCSizeMake(250, 40), kCCTextAlignmentCenter);
+		_labelConnected = CCLabelTTF::create("Conectado!", "Helvetica", 30, CCSizeMake(250, 40), kCCTextAlignmentCenter);
 		_labelConnected->setColor(ccc3(0,255,0));
 
 	} else {
-		_labelConnected = CCLabelTTF::create("No conectado", "Helvetica", 30,
-											 CCSizeMake(250, 40), kCCTextAlignmentCenter);
+		_labelConnected = CCLabelTTF::create("No conectado", "Helvetica", 30, CCSizeMake(250, 40), kCCTextAlignmentCenter);
 		_labelConnected->setColor(ccc3(255,0,0));
 	}
 
 	_labelConnected->setPosition(ccp(origin.x + visibleSize.width / 2,
 									 origin.y + visibleSize.height - 40 ));
-	this->addChild(_labelConnected);
+	this->addChild(_labelConnected, 5);
 
-	CCMenuItemFont *button_back = CCMenuItemFont::create("Volver al menu", this,
-										menu_selector(GameScene::menuBackCallback));
-	button_back->setPosition(ccp(origin.x + 100, origin.y + visibleSize.height - 30));
+	CCMenuItemFont *button_back = CCMenuItemFont::create("Volver al menu", this, menu_selector(GameScene::menuBackCallback));
+	button_back->setPosition(ccp(origin.x + 100, origin.y + visibleSize.height - 40));
 
 	CCMenu* menu;
 
 	if (connected) {
-		CCMenuItemFont *button_send = CCMenuItemFont::create("Enviar colores", this,
-										menu_selector(GameScene::menuSendCallback));
+		CCMenuItemFont *button_send = CCMenuItemFont::create("Enviar colores", this, menu_selector(GameScene::menuSendCallback));
 		button_send->setPosition(ccp(origin.x + visibleSize.width - 100, origin.y + 30));
 		menu = CCMenu::create(button_send, button_back, NULL);
 
@@ -127,9 +115,7 @@ bool GameScene::init()
 	}
 
 	menu->setPosition(ccp(0,0));
-	// menu->alignItemsVertically();
-	// menu->setPosition(ccp(origin.x + visibleSize.width/2, origin.y + (visibleSize.height/5) * 1));
-	this->addChild(menu);
+	this->addChild(menu, 5);
 
     this->setTouchEnabled(true);
 
@@ -154,20 +140,6 @@ void GameScene::ccTouchesEnded(CCSet* touches, CCEvent* event)
 		int blue = ( (locX % 64) / 16) * 85;
 		_ledSelected->setColor( ccc3(red, green, blue) );
 
-	} else
-	{
-		CCObject *it = NULL;
-		int i = 1;
-		CCARRAY_FOREACH(_leds, it)
-		{
-			CCSprite *led = dynamic_cast<CCSprite*>(it);
-			if (led->boundingBox().containsPoint(location))
-			{
-				_ledSelected = led;
-				//led->setColor( ccc3(255,0,0) );
-			}
-			i++;
-		}
 	}
 }
 
@@ -200,4 +172,63 @@ void GameScene::menuSendCallback(CCObject* pSender)
 	prms->setObject(colores, "colores");
 
 	SendMessageWithParams(string("SendColors"), prms);
+}
+
+CCTableViewCell* GameScene::tableCellAtIndex(CCTableView *table, unsigned int idx)
+{
+    CCString *string = CCString::createWithFormat("%d", idx+1);
+    CCTableViewCell *cell = table->dequeueCell();
+    if (!cell) {
+        cell = new CCTableViewCell();
+        cell->autorelease();
+
+        CCSprite *sprite = CCSprite::create( "LED2.png", CCRectMake(0,0,120,120) );
+        sprite->setAnchorPoint(CCPointZero);
+        sprite->setPosition(ccp(10, 0));
+        sprite->setTag(5);
+        cell->addChild(sprite);
+
+        CCLabelTTF *label = CCLabelTTF::create(string->getCString(), "Helvetica", 25, CCSizeMake(50, 30), kCCTextAlignmentCenter);
+        label->setPosition(ccp(45, 130));
+		label->setAnchorPoint(CCPointZero);
+        label->setTag(123);
+        label->setColor(ccc3(0,0,255));
+        label->setHorizontalAlignment(kCCTextAlignmentCenter);
+        cell->addChild(label);
+    }
+    else
+    {
+        CCLabelTTF *label = (CCLabelTTF*)cell->getChildByTag(123);
+        label->setString(string->getCString());
+    }
+
+
+    return cell;
+}
+
+void GameScene::tableCellTouched(CCTableView* table, CCTableViewCell* cell)
+{
+    CCLOG("cell touched at index: %i", cell->getIdx());
+    _ledSelected = (CCSprite*)cell->getChildByTag(5);
+    CCLabelTTF *label = (CCLabelTTF*) cell->getChildByTag(123);
+    label->setColor(ccc3(0,255,0));
+
+    if (_indexLed > -1)
+    {
+    	CCTableViewCell* lastCell = table->cellAtIndex(_indexLed);
+    	CCLabelTTF *label = (CCLabelTTF*) lastCell->getChildByTag(123);
+		label->setColor(ccc3(0,0,255));
+    }
+
+    _indexLed = cell->getIdx();
+}
+
+CCSize GameScene::tableCellSizeForIndex(CCTableView *table, unsigned int idx)
+{
+    return CCSizeMake(140, 160);
+}
+
+unsigned int GameScene::numberOfCellsInTableView(CCTableView *table)
+{
+    return GameManager::sharedGameManager()->getNLeds();
 }

@@ -22,6 +22,7 @@ protected:
 	bool connected;
 	const char* ip;
 	const char* port;
+	int nLeds;
 
 public:
 	// Get instance of singleton
@@ -35,6 +36,9 @@ public:
 
 	const char* getPort();
 	void setPort(const char* s);
+
+	int getNLeds();
+	void setNLeds(int n);
 
 };
 

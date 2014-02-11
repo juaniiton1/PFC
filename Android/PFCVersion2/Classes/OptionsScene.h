@@ -15,6 +15,7 @@ class OptionsScene : public cocos2d::CCLayerColor
 {
 protected:
 	cocos2d::CCLabelTTF* label_connected;
+	cocos2d::CCLabelTTF* label_nleds;
     cocos2d::extension::CCEditBox* input_ip;
     cocos2d::extension::CCEditBox* input_port;
 
@@ -34,6 +35,8 @@ public:
 
     void menuConnectCallback(CCObject* pSender);
     void menuBackCallback(CCObject* pSender);
+    void oneMoreLed(CCObject* pSender);
+    void oneLessLed(CCObject* pSender);
 };
 
 #endif // __OPTIONS_SCENE_H__

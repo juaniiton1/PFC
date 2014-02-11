@@ -1,6 +1,5 @@
 #include "HelloWorldScene.h"
 #include "SimpleAudioEngine.h"
-#include "GameOverScene.h"
 #include "GameScene.h"
 #include "OptionsScene.h"
 #include "NDKHelper.h"
@@ -41,24 +40,29 @@ bool HelloWorld::init()
 	CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
 	CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
 
-	CCMenuItemFont *pEnterItem = CCMenuItemFont::create("Entrar", this,
-													menu_selector(HelloWorld::menuEnterCallback));
-	pEnterItem->setFontSize(35);
-	pEnterItem->setFontName("Helvetica");
+	// Fondo con la textura de madera
+	CCTexture2D *texture = CCTextureCache::sharedTextureCache()->addImage("purty_wood.png");
+	ccTexParams tp = { GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
+	texture->setTexParameters(&tp);
+	CCSprite *background = CCSprite::createWithTexture(texture,
+			CCRectMake(0, 0, visibleSize.width, visibleSize.height));
+	background->setPosition( ccp( visibleSize.width/2, visibleSize.height/2 ) );
 
-	CCMenuItemFont *pConfigItem = CCMenuItemFont::create("Configurar", this,
-													menu_selector(HelloWorld::menuConfigCallback));
-	pConfigItem->setFontSize(35);
-	pConfigItem->setFontName("Helvetica");
+	this->addChild(background, 1);
 
-	CCMenuItemFont *pCloseItem = CCMenuItemFont::create("Salir", this,
-													menu_selector(HelloWorld::menuCloseCallback));
-	pCloseItem->setFontSize(35);
-	pCloseItem->setFontName("Helvetica");
+	CCLOG("origin.x=%f | origin.y=%f | visibleSize.width=%f | visibleSize.height=%f",
+				origin.x, origin.y, visibleSize.width, visibleSize.height);
+	CCLOG("vS.width: %f ; vS.height: %f", visibleSize.width, visibleSize.height);
+
+	// www.colourlovers.com/palette/298635/wooden_color_pencil
+	CCMenuItem *pEnterItem  = CCMenuItemImage::create("icon_bulb.png", "icon_bulb_hover.png", this, menu_selector(HelloWorld::menuEnterCallback));
+	CCMenuItem *pConfigItem = CCMenuItemImage::create("icon_settings.png", "icon_settings_hover.png", this, menu_selector(HelloWorld::menuConfigCallback));
+	CCMenuItem *pCloseItem  = CCMenuItemImage::create("icon_exit.png", "icon_exit_hover.png", this, menu_selector(HelloWorld::menuCloseCallback));
 
 	CCMenu* pMenu = CCMenu::create(pEnterItem, pConfigItem, pCloseItem, NULL);
-	pMenu->alignItemsVertically();
-	this->addChild(pMenu, 1);
+	pMenu->alignItemsHorizontallyWithPadding(60);
+
+	this->addChild(pMenu, 5);
 
     this->setTouchEnabled(true);
 
