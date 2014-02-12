@@ -240,8 +240,13 @@ void loop(){
                  index = 0;
                  rgb = 0;
                  nLeds = 0;
+                 code = 0;
                } else {
                  Serial.println("ERROR: CODE >= 5");
+                 code = 0;
+                 index = 0;
+                 rgb = 0;
+                 nLeds = 0;
                }
              } else if (code == 1) {
                nLeds = data;

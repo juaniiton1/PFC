@@ -29,7 +29,7 @@ CCScene* GameScene::scene()
     return scene;
 }
 
-GameScene::GameScene():_leds(NULL), _palette(NULL), _ledSelected(NULL), _labelConnected(NULL)
+GameScene::GameScene():_leds(NULL), _palette(NULL), _labelConnected(NULL), _cellsSelected(NULL)
 {
 	_indexLed = -1;
 }
@@ -43,8 +43,9 @@ GameScene::~GameScene()
 	if (_palette) {
 		_palette = NULL;
 	}
-	if (_ledSelected) {
-		_ledSelected = NULL;
+	if (_cellsSelected) {
+		_cellsSelected->release();
+		_cellsSelected = NULL;
 	}
 	if (_labelConnected) {
 		_labelConnected = NULL;
@@ -71,10 +72,11 @@ bool GameScene::init()
 
 	this->addChild(background, 1);
 
-	//LedsLayer *pLayer = LedsLayer::create();
-	//this->addChild(pLayer, 5);
+	CCSprite* con_smile = CCSprite::create("con_wait.png", CCRectMake(0,0,64,64) );
+	con_smile->setPosition( ccp(visibleSize.width - 64, visibleSize.height - 64) );
+	this->addChild(con_smile, 2);
 
-	CCTableView* tableView = CCTableView::create(this, CCSizeMake(visibleSize.width, visibleSize.height/3));
+	tableView = CCTableView::create(this, CCSizeMake(visibleSize.width, visibleSize.height/3));
 	tableView->setDirection(kCCScrollViewDirectionHorizontal);
 	tableView->setPosition(ccp(10, visibleSize.height/3));
 	tableView->setDelegate(this);
@@ -91,23 +93,24 @@ bool GameScene::init()
 		_labelConnected = CCLabelTTF::create("Conectado!", "Helvetica", 30, CCSizeMake(250, 40), kCCTextAlignmentCenter);
 		_labelConnected->setColor(ccc3(0,255,0));
 
+		con_smile->setTexture(CCTextureCache::sharedTextureCache()->addImage("con_ok.png"));
+
 	} else {
 		_labelConnected = CCLabelTTF::create("No conectado", "Helvetica", 30, CCSizeMake(250, 40), kCCTextAlignmentCenter);
 		_labelConnected->setColor(ccc3(255,0,0));
 	}
 
-	_labelConnected->setPosition(ccp(origin.x + visibleSize.width / 2,
-									 origin.y + visibleSize.height - 40 ));
+	_labelConnected->setPosition(ccp(origin.x + visibleSize.width / 2, origin.y + visibleSize.height - 40 ));
 	this->addChild(_labelConnected, 5);
 
-	CCMenuItemFont *button_back = CCMenuItemFont::create("Volver al menu", this, menu_selector(GameScene::menuBackCallback));
-	button_back->setPosition(ccp(origin.x + 100, origin.y + visibleSize.height - 40));
+	CCMenuItem *button_back = CCMenuItemImage::create("btn_volver.png", "btn_volver_h.png", this, menu_selector(GameScene::menuBackCallback));
+	button_back->setPosition(ccp(origin.x + 105, visibleSize.height - 60));
 
 	CCMenu* menu;
 
 	if (connected) {
-		CCMenuItemFont *button_send = CCMenuItemFont::create("Enviar colores", this, menu_selector(GameScene::menuSendCallback));
-		button_send->setPosition(ccp(origin.x + visibleSize.width - 100, origin.y + 30));
+		CCMenuItem *button_send = CCMenuItemImage::create("btn_enviar.png", "btn_enviar_h.png", this, menu_selector(GameScene::menuSendCallback));
+		button_send->setPosition(ccp(visibleSize.width - 105, origin.y + 60));
 		menu = CCMenu::create(button_send, button_back, NULL);
 
 	} else {
@@ -116,6 +119,8 @@ bool GameScene::init()
 
 	menu->setPosition(ccp(0,0));
 	this->addChild(menu, 5);
+
+	_cellsSelected = new CCArray;
 
     this->setTouchEnabled(true);
 
@@ -129,7 +134,7 @@ void GameScene::ccTouchesEnded(CCSet* touches, CCEvent* event)
 	CCPoint location = touch->getLocationInView();
 	location = CCDirector::sharedDirector()->convertToGL(location);
 
-	if ( _ledSelected != NULL and _palette->boundingBox().containsPoint(location) )
+	if ( _cellsSelected->count() > 0 and _palette->boundingBox().containsPoint(location) )
 	{
 		CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect("pew-pew-lei.wav");
 		int locX = location.x;
@@ -138,8 +143,14 @@ void GameScene::ccTouchesEnded(CCSet* touches, CCEvent* event)
 		int red = (locX / 72) * 36;
 		int green = 255 - ( (locY / 18) * 36 );
 		int blue = ( (locX % 64) / 16) * 85;
-		_ledSelected->setColor( ccc3(red, green, blue) );
 
+		CCObject *it = NULL;
+		CCARRAY_FOREACH(_cellsSelected, it)
+		{
+			CCTableViewCell *cell = dynamic_cast<CCTableViewCell*>(it);
+			CCSprite *led = (CCSprite*) cell->getChildByTag(5);
+			led->setColor( ccc3(red, green, blue) );
+		}
 	}
 }
 
@@ -152,13 +163,16 @@ void GameScene::menuSendCallback(CCObject* pSender)
 {
 	CCArray* colores = new CCArray;;
 	CCObject *it = NULL;
-	CCARRAY_FOREACH(_leds, it)
+
+	int aux_nleds = GameManager::sharedGameManager()->getNLeds();
+
+	for (int i = 0; i < aux_nleds; i++)
 	{
-		CCSprite *led = dynamic_cast<CCSprite*>(it);
+		CCTableViewCell *cell = tableView->cellAtIndex(i);
+		CCSprite *led = (CCSprite*) cell->getChildByTag(5);
 		ccColor3B rgb = led->getColor();
 		CCArray* uno_colores = new CCArray;
 		int intRgb = rgb.r + rgb.g*256 + rgb.b*65536;
-		CCLOG("EL PUTO INTRGB=%d - R:%d - G:%d - B:%d", intRgb, rgb.r, rgb.g, rgb.b);
 		// si solo mandamos un array con los colores en int nos ahorramos los arrays individuales
 		// colores->addObject(CCString::createWithFormat("%d", intRgb));
 		uno_colores->addObject(CCString::createWithFormat("%d", rgb.r));
@@ -168,7 +182,7 @@ void GameScene::menuSendCallback(CCObject* pSender)
 	}
 
 	CCDictionary* prms = CCDictionary::create();
-	prms->setObject(CCString::create("5"), "nLeds");
+	prms->setObject(CCString::createWithFormat("%d", aux_nleds), "nLeds");
 	prms->setObject(colores, "colores");
 
 	SendMessageWithParams(string("SendColors"), prms);
@@ -182,7 +196,9 @@ CCTableViewCell* GameScene::tableCellAtIndex(CCTableView *table, unsigned int id
         cell = new CCTableViewCell();
         cell->autorelease();
 
-        CCSprite *sprite = CCSprite::create( "LED2.png", CCRectMake(0,0,120,120) );
+        CCLOG("1. CELDA CON INDICE %u TIENE PUNTERO EN %p", idx, cell);
+
+        CCSprite *sprite = CCSprite::create( "LED3.png", CCRectMake(0,0,120,120) );
         sprite->setAnchorPoint(CCPointZero);
         sprite->setPosition(ccp(10, 0));
         sprite->setTag(5);
@@ -195,6 +211,8 @@ CCTableViewCell* GameScene::tableCellAtIndex(CCTableView *table, unsigned int id
         label->setColor(ccc3(0,0,255));
         label->setHorizontalAlignment(kCCTextAlignmentCenter);
         cell->addChild(label);
+
+        CCLOG("2. CELDA CON INDICE %u TIENE PUNTERO EN %p", idx, cell);
     }
     else
     {
@@ -209,18 +227,21 @@ CCTableViewCell* GameScene::tableCellAtIndex(CCTableView *table, unsigned int id
 void GameScene::tableCellTouched(CCTableView* table, CCTableViewCell* cell)
 {
     CCLOG("cell touched at index: %i", cell->getIdx());
-    _ledSelected = (CCSprite*)cell->getChildByTag(5);
+    CCSprite *sprite = (CCSprite*) cell->getChildByTag(5);
     CCLabelTTF *label = (CCLabelTTF*) cell->getChildByTag(123);
-    label->setColor(ccc3(0,255,0));
 
-    if (_indexLed > -1)
+    if (_cellsSelected->containsObject(cell))
     {
-    	CCTableViewCell* lastCell = table->cellAtIndex(_indexLed);
-    	CCLabelTTF *label = (CCLabelTTF*) lastCell->getChildByTag(123);
-		label->setColor(ccc3(0,0,255));
-    }
+    	// si ya esta seleccionado
+    	_cellsSelected->removeObject(cell);
+    	label->setColor(ccc3(0,0,255));
 
-    _indexLed = cell->getIdx();
+    } else
+    {
+    	// si no esta seleccionado
+    	_cellsSelected->addObject(cell);
+    	label->setColor(ccc3(0,255,0));
+    }
 }
 
 CCSize GameScene::tableCellSizeForIndex(CCTableView *table, unsigned int idx)

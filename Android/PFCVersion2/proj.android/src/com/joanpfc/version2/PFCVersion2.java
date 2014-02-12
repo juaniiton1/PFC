@@ -64,7 +64,7 @@ public class PFCVersion2 extends Cocos2dxActivity{
 		textToToast = prms.getString("text_to_toast");
 		Log.i("TEXT TO TOAST", textToToast);
 		
-    	Toast.makeText(this, textToToast, Toast.LENGTH_SHORT).show();
+    	// Toast.makeText(this, textToToast, Toast.LENGTH_SHORT).show();
     }
     
     public void SendColors(JSONObject prms) throws JSONException, IOException
@@ -116,7 +116,7 @@ public class PFCVersion2 extends Cocos2dxActivity{
     
     public void ConnectionOk()
     {
-    	Toast.makeText(this, "BIEN!", Toast.LENGTH_SHORT).show();
+    	// Toast.makeText(this, "BIEN!", Toast.LENGTH_SHORT).show();
     	this.runOnGLThread(new Runnable()
     	{
     		@Override
@@ -130,7 +130,7 @@ public class PFCVersion2 extends Cocos2dxActivity{
     
     public void ConnectionError()
     {
-    	Toast.makeText(this, "MIERDA :/ pero bien :D", Toast.LENGTH_SHORT).show();
+    	// Toast.makeText(this, "MIERDA :/ pero bien :D", Toast.LENGTH_SHORT).show();
     	this.runOnGLThread(new Runnable()
     	{
     		@Override

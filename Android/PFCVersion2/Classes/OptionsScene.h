@@ -18,6 +18,7 @@ protected:
 	cocos2d::CCLabelTTF* label_nleds;
     cocos2d::extension::CCEditBox* input_ip;
     cocos2d::extension::CCEditBox* input_port;
+    cocos2d::CCSprite* con_smile;
 
 public:
 
