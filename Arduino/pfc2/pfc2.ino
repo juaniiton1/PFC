@@ -25,8 +25,8 @@ unsigned char data = 0;
 unsigned char nLeds = 0;
 // Codigo arbitrario
 unsigned char code = 0;
-// Informacion de los leds
-Color leds[10];
+// Informacion del led a modificar
+Color led(0,0,0);
 
 // Wifi parameters
 
@@ -228,19 +228,17 @@ void loop(){
              //  0: CODE
              //  1: N LEDS
              //  2: ENVIANDO
-             //  3: SEND             
+             //  3: FINAL             
              
              if (code == 0) {
                if (data < 3) {
                  code = data;
                } else if (data == 3) {
-                 for (int i = 1; i <= nLeds; i++) {                   
-                   shift.sendColor(leds[nLeds-i].getRed(), leds[nLeds-i].getGreen(), leds[nLeds-i].getBlue());
-                 }
+                 Serial.println("OK - FIN DE CONEXION");
+                 code = 0;
                  index = 0;
                  rgb = 0;
                  nLeds = 0;
-                 code = 0;
                } else {
                  Serial.println("ERROR: CODE >= 5");
                  code = 0;
@@ -250,11 +248,17 @@ void loop(){
                }
              } else if (code == 1) {
                nLeds = data;
+               for (int i=0; i<nLeds; i++) {
+                 shift.sendColor(led.getRed(), led.getGreen(), led.getBlue());
+               }
                code = 0;
              } else if (code == 2) {
-               leds[index].setOneColor(data, rgb);
-               if (rgb == 2) index++;
+               led.setOneColor(data, rgb);
                rgb = (rgb + 1) % 3;
+               if (rgb == 0) {
+                 index++;
+                 shift.sendColor(led.getRed(), led.getGreen(), led.getBlue());
+               }
                if (index == nLeds) code = 0;
              }
              

@@ -29,26 +29,15 @@ CCScene* GameScene::scene()
     return scene;
 }
 
-GameScene::GameScene():_leds(NULL), _palette(NULL), _labelConnected(NULL), _cellsSelected(NULL)
+GameScene::GameScene():_palette(NULL), _cellsSelected(NULL), tableView(NULL)
 {
-	_indexLed = -1;
+
 }
 
 GameScene::~GameScene()
 {
-	if (_leds) {
-		_leds->release();
-		_leds = NULL;
-	}
-	if (_palette) {
-		_palette = NULL;
-	}
 	if (_cellsSelected) {
 		_cellsSelected->release();
-		_cellsSelected = NULL;
-	}
-	if (_labelConnected) {
-		_labelConnected = NULL;
 	}
 }
 
@@ -87,34 +76,24 @@ bool GameScene::init()
 	_palette->setPosition( ccp( origin.x + 256, origin.y + 64 ) );
 	this->addChild(_palette, 5);
 
-	bool connected = GameManager::sharedGameManager()->getConnected();
-
-	if (connected) {
-		_labelConnected = CCLabelTTF::create("Conectado!", "Helvetica", 30, CCSizeMake(250, 40), kCCTextAlignmentCenter);
-		_labelConnected->setColor(ccc3(0,255,0));
-
-		con_smile->setTexture(CCTextureCache::sharedTextureCache()->addImage("con_ok.png"));
-
-	} else {
-		_labelConnected = CCLabelTTF::create("No conectado", "Helvetica", 30, CCSizeMake(250, 40), kCCTextAlignmentCenter);
-		_labelConnected->setColor(ccc3(255,0,0));
-	}
-
-	_labelConnected->setPosition(ccp(origin.x + visibleSize.width / 2, origin.y + visibleSize.height - 40 ));
-	this->addChild(_labelConnected, 5);
+	CCMenuItem *btn_clear = CCMenuItemImage::create("btn_clear.png", "btn_clear_h.png", this, menu_selector(GameScene::menuClearCallback));
+	btn_clear->setPosition(ccp(visibleSize.width/2, visibleSize.height - 60));
 
 	CCMenuItem *button_back = CCMenuItemImage::create("btn_volver.png", "btn_volver_h.png", this, menu_selector(GameScene::menuBackCallback));
 	button_back->setPosition(ccp(origin.x + 105, visibleSize.height - 60));
 
 	CCMenu* menu;
+	bool connected = GameManager::sharedGameManager()->getConnected();
 
 	if (connected) {
+		con_smile->setTexture(CCTextureCache::sharedTextureCache()->addImage("con_ok.png"));
+
 		CCMenuItem *button_send = CCMenuItemImage::create("btn_enviar.png", "btn_enviar_h.png", this, menu_selector(GameScene::menuSendCallback));
 		button_send->setPosition(ccp(visibleSize.width - 105, origin.y + 60));
-		menu = CCMenu::create(button_send, button_back, NULL);
+		menu = CCMenu::create(button_send, button_back, btn_clear, NULL);
 
 	} else {
-		menu = CCMenu::create(button_back, NULL);
+		menu = CCMenu::create(button_back, btn_clear, NULL);
 	}
 
 	menu->setPosition(ccp(0,0));
@@ -161,24 +140,16 @@ void GameScene::menuBackCallback(CCObject* pSender)
 
 void GameScene::menuSendCallback(CCObject* pSender)
 {
-	CCArray* colores = new CCArray;;
-	CCObject *it = NULL;
+	CCArray* colores = new CCArray;
 
 	int aux_nleds = GameManager::sharedGameManager()->getNLeds();
 
 	for (int i = 0; i < aux_nleds; i++)
 	{
-		CCTableViewCell *cell = tableView->cellAtIndex(i);
-		CCSprite *led = (CCSprite*) cell->getChildByTag(5);
+		CCSprite* led = (CCSprite*) tableView->cellAtIndex(i)->getChildByTag(5);
 		ccColor3B rgb = led->getColor();
-		CCArray* uno_colores = new CCArray;
-		int intRgb = rgb.r + rgb.g*256 + rgb.b*65536;
-		// si solo mandamos un array con los colores en int nos ahorramos los arrays individuales
-		// colores->addObject(CCString::createWithFormat("%d", intRgb));
-		uno_colores->addObject(CCString::createWithFormat("%d", rgb.r));
-		uno_colores->addObject(CCString::createWithFormat("%d", rgb.g));
-		uno_colores->addObject(CCString::createWithFormat("%d", rgb.b));
-		colores->addObject(uno_colores);
+		int intRgb = rgb.b + rgb.g*256 + rgb.r*65536;
+		colores->addObject(CCString::createWithFormat("%d", intRgb));
 	}
 
 	CCDictionary* prms = CCDictionary::create();
@@ -186,6 +157,20 @@ void GameScene::menuSendCallback(CCObject* pSender)
 	prms->setObject(colores, "colores");
 
 	SendMessageWithParams(string("SendColors"), prms);
+	colores->release();
+}
+
+void GameScene::menuClearCallback(CCObject* pSender)
+{
+	CCObject *it = NULL;
+	CCARRAY_FOREACH(_cellsSelected, it)
+	{
+		CCTableViewCell *cell = dynamic_cast<CCTableViewCell*>(it);
+		CCLOG("ELIMINO LA CELDA CON INDICE %u", cell->getIdx());
+		CCLabelTTF *label = (CCLabelTTF*) cell->getChildByTag(123);
+		label->setColor( ccc3(0, 0, 255) );
+	}
+	_cellsSelected->removeAllObjects();
 }
 
 CCTableViewCell* GameScene::tableCellAtIndex(CCTableView *table, unsigned int idx)
@@ -212,7 +197,6 @@ CCTableViewCell* GameScene::tableCellAtIndex(CCTableView *table, unsigned int id
         label->setHorizontalAlignment(kCCTextAlignmentCenter);
         cell->addChild(label);
 
-        CCLOG("2. CELDA CON INDICE %u TIENE PUNTERO EN %p", idx, cell);
     }
     else
     {
@@ -233,12 +217,14 @@ void GameScene::tableCellTouched(CCTableView* table, CCTableViewCell* cell)
     if (_cellsSelected->containsObject(cell))
     {
     	// si ya esta seleccionado
+    	CCLOG("SI que lo contiene");
     	_cellsSelected->removeObject(cell);
     	label->setColor(ccc3(0,0,255));
 
     } else
     {
     	// si no esta seleccionado
+    	CCLOG("NO lo contiene");
     	_cellsSelected->addObject(cell);
     	label->setColor(ccc3(0,255,0));
     }

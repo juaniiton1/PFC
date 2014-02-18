@@ -20,8 +20,8 @@ protected:
 	static GameManager* mySingleton;
 
 	bool connected;
-	const char* ip;
-	const char* port;
+	char* ip;
+	char* port;
 	int nLeds;
 
 public:
@@ -31,10 +31,10 @@ public:
 	bool getConnected();
 	void setConnected(bool b);
 
-	const char* getIp();
+	char* getIp();
 	void setIp(const char* s);
 
-	const char* getPort();
+	char* getPort();
 	void setPort(const char* s);
 
 	int getNLeds();

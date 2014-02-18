@@ -42,24 +42,24 @@ void GameManager::setConnected(bool b)
 	connected = b;
 }
 
-const char* GameManager::getIp()
+char* GameManager::getIp()
 {
 	return ip;
 }
 
 void GameManager::setIp(const char* c)
 {
-	ip = c;
+	ip = (char*) c;
 }
 
-const char* GameManager::getPort()
+char* GameManager::getPort()
 {
 	return port;
 }
 
 void GameManager::setPort(const char* c)
 {
-	port = c;
+	port = (char*) c;
 }
 
 int GameManager::getNLeds()

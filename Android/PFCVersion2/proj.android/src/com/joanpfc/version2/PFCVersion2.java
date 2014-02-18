@@ -33,6 +33,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -79,33 +80,26 @@ public class PFCVersion2 extends Cocos2dxActivity{
     	Connection.getInstance().writeSocket(nLeds);
     	Connection.getInstance().writeSocket(2);
     	
-    	// for (int i = 0; i < colores.length(); i++)
-    	for (int i = 0; i < nLeds; i++)
+    	for (int i = 1; i <= nLeds; i++)
     	{
-    		JSONArray colores_aux = colores.getJSONArray(i);
-    		for (int j = 0; j < 3; j++)
-    		{
-    			// Enviamos cada uno de los red, green, blue de cada led
-    			Connection.getInstance().writeSocket(colores_aux.getInt(j));
-    		}
+    		// Mandamos del ultimo al primero
+    		int rgb 	= colores.getInt(nLeds-i);
+    		int red 	= Color.red(rgb);
+    		int green 	= Color.green(rgb);
+    		int blue 	= Color.blue(rgb);
+    		Connection.getInstance().writeSocket(red);
+    		Connection.getInstance().writeSocket(green);
+    		Connection.getInstance().writeSocket(blue);
+//    		JSONArray colores_aux = colores.getJSONArray(nLeds-i);
+//    		for (int j = 0; j < 3; j++)
+//    		{
+//    			// Enviamos cada uno de los red, green, blue de cada led
+//    			Connection.getInstance().writeSocket(colores_aux.getInt(j));
+//    		}
     	}
     	
     	Connection.getInstance().writeSocket(3);
     }
-    
-//    void sendColor(int color) throws IOException {
-//		int red 	= Color.red(color);
-//		int green 	= Color.green(color);
-//		int blue 	= Color.blue(color);
-//    	Log.v("COLOR", "R:"+red+" G:"+green+" B:"+blue);
-//		writeSocket(1);
-//		writeSocket(red);
-//		writeSocket(2);
-//		writeSocket(green);
-//		writeSocket(3);
-//		writeSocket(blue);
-//		writeSocket(4);
-//	}
     
     public void SelectorConnect(JSONObject prms) throws JSONException
     {
@@ -141,22 +135,5 @@ public class PFCVersion2 extends Cocos2dxActivity{
     		}
 		});
     }
-    
-//    public void ChangeSomethingInCocos()
-//    {
-//        // If you want to change anything that cocos handles, please run it on GLThread
-//        // Because cocos is a non threaded environment, it is required to queue stuff there
-//        // Every call on NDK opens up a new thread, hence making inconsistency in cocos and NDK
-//        
-//    	this.runOnGLThread(new Runnable()
-//                           {
-//			@Override
-//			public void run()
-//			{
-//				// TODO Auto-generated method stub
-//				AndroidNDKHelper.SendMessageWithParameters("ChangeLabelSelector", null);
-//			}
-//		});
-//    }
 
 }

@@ -106,8 +106,11 @@ bool OptionsScene::init()
 
 		con_smile->setTexture(CCTextureCache::sharedTextureCache()->addImage("con_ok.png"));
 
-		input_ip->setText(GameManager::sharedGameManager()->getIp());
-		input_port->setText(GameManager::sharedGameManager()->getPort());
+		const char* aux_ip   = GameManager::sharedGameManager()->getIp();
+		const char* aux_port = GameManager::sharedGameManager()->getPort();
+		CCLOG("VAMOS A VER QUE TIENEN IP:%s Y PUERTO:%s", aux_ip, aux_port);
+		input_ip->setText(aux_ip);
+		input_port->setText(aux_port);
 	}
 
 	CCMenuItem *button_connect = CCMenuItemImage::create("btn_conectar.png", "btn_conectar_h.png", this, menu_selector(OptionsScene::menuConnectCallback));
@@ -137,8 +140,8 @@ bool OptionsScene::init()
 							this);
 
 	NDKHelper::AddSelector("OptionsSelectors", "connectionError",
-								callfuncND_selector(OptionsScene::connectionError),
-								this);
+							callfuncND_selector(OptionsScene::connectionError),
+							this);
 
     this->setTouchEnabled(true);
 
@@ -155,6 +158,8 @@ void OptionsScene::connectionOk(CCNode *sender, void *data)
 	GameManager::sharedGameManager()->setConnected(true);
 	GameManager::sharedGameManager()->setIp(input_ip->getText());
 	GameManager::sharedGameManager()->setPort(input_port->getText());
+
+	CCLOG("TERMINO DE ACTUALIZAR GAMEMANAGER. IP:%s PUERTO:%s", input_ip->getText(), input_port->getText());
 }
 
 void OptionsScene::connectionError(CCNode *sender, void *data)

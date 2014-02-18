@@ -50,10 +50,6 @@ bool HelloWorld::init()
 
 	this->addChild(background, 1);
 
-	CCLOG("origin.x=%f | origin.y=%f | visibleSize.width=%f | visibleSize.height=%f",
-				origin.x, origin.y, visibleSize.width, visibleSize.height);
-	CCLOG("vS.width: %f ; vS.height: %f", visibleSize.width, visibleSize.height);
-
 	// www.colourlovers.com/palette/298635/wooden_color_pencil
 	CCMenuItem *pEnterItem  = CCMenuItemImage::create("icon_bulb.png", "icon_bulb_hover.png", this, menu_selector(HelloWorld::menuEnterCallback));
 	CCMenuItem *pConfigItem = CCMenuItemImage::create("icon_settings.png", "icon_settings_hover.png", this, menu_selector(HelloWorld::menuConfigCallback));

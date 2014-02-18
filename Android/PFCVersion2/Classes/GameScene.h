@@ -14,13 +14,9 @@
 class GameScene : public cocos2d::CCLayer, public cocos2d::extension::CCTableViewDataSource, public cocos2d::extension::CCTableViewDelegate
 {
 protected:
-	cocos2d::CCArray* _leds;
 	cocos2d::CCArray* _cellsSelected;
 	cocos2d::CCSprite* _palette;
-	cocos2d::CCSprite* _ledSelected;
-	cocos2d::CCLabelTTF* _labelConnected;
 	cocos2d::extension::CCTableView* tableView;
-	int _indexLed;
 
 public:
 
@@ -32,6 +28,7 @@ public:
 
     void menuBackCallback(CCObject* pSender);
     void menuSendCallback(CCObject* pSender);
+    void menuClearCallback(CCObject* pSender);
 
     CREATE_FUNC(GameScene);
 
