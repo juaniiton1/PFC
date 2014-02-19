@@ -23,10 +23,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="com.joanpfc.version2.MyAction"
-            android:label="@string/title_activity_my_action" >
-        </activity>
     </application>
 
     <supports-screens
