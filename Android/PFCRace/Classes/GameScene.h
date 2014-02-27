@@ -10,6 +10,7 @@
 
 #include "cocos2d.h"
 #include "cocos-ext.h"
+#include "Curva.h"
 
 class GameScene : public cocos2d::CCLayer
 {
@@ -24,9 +25,11 @@ protected:
 	cocos2d::CCArray* _oppCars;
 	cocos2d::CCSprite* _piano1;
 	cocos2d::CCSprite* _piano2;
+	Curva* _curvas;
 	float _vel;
 	float _dist;
 	bool _started;
+	int _nextCurva;
 
 public:
 

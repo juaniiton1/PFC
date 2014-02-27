@@ -8,6 +8,7 @@
 #include "GameScene.h"
 #include "GameManager.h"
 #include "HelloWorldScene.h"
+#include "Curva.h"
 #include "NDKHelper.h"
 
 USING_NS_CC;
@@ -43,11 +44,22 @@ CCScene* GameScene::scene()
     return scene;
 }
 
-GameScene::GameScene(): _car(NULL), _road(NULL), _road2(NULL), _grass(NULL), _labelVel(NULL), _labelDist(NULL), _oppCars(NULL), _piano1(NULL), _piano2(NULL)
+GameScene::GameScene()
 {
+	_car = NULL;
+	_road = NULL;
+	_road2 = NULL;
+	_grass = NULL;
+	_labelVel = NULL;
+	_labelDist = NULL;
+	_labelStart = NULL;
+	_oppCars = NULL;
+	_piano1 = NULL;
+	_piano2 = NULL;
 	_vel = 0.0;
 	_dist = 0.0;
 	_started = false;
+	_nextCurva = 0;
 }
 
 GameScene::~GameScene()
@@ -55,6 +67,9 @@ GameScene::~GameScene()
 	if (_oppCars) {
 		_oppCars->release();
 		_oppCars = NULL;
+	}
+	if (_curvas) {
+		delete[]_curvas;
 	}
 }
 
@@ -147,6 +162,11 @@ bool GameScene::init()
 	// Inicializamos el vector de coches en contra
 	_oppCars = new CCArray;
 
+	// Inicializamos el vector de curvas
+	_curvas = new Curva[2];
+	_curvas[0] = Curva(250, 150, 2, false);
+	_curvas[1] = Curva(800, 300, 5, true);
+
 	// Activamos el acelerometro y el touch
     this->setTouchEnabled(true);
 
@@ -235,7 +255,7 @@ void GameScene::updateFrame(float dt)
 			// 4. Reanudamos carrera
 			CCFiniteTimeAction* resumeRace = CCCallFuncN::create( this, callfuncN_selector(GameScene::resumeRace));
 
-			// X. Ejecutamos todas las acciones
+			// 5. Ejecutamos todas las acciones
 			oppCar->runAction( CCSequence::create(oppJump, _carFadeOut, oppDel, NULL));
 			_car->runAction( _carVibration );
 			_car->runAction( CCSequence::create(_carFadeOut, _carPlace, _carFadeIn, resumeRace, NULL) );
@@ -284,7 +304,7 @@ void GameScene::gameLogic(float dt)
 	CCRect roadRec 	= _road->boundingBox();
 	CCSize carSize 	= _car->getContentSize();
 
-	// Cada 500 metros sacamos un coche en contra
+	// Cada 100 metros sacamos un coche en contra
 	if ( (int) (_dist / DIS_CAR) > (int) (distAnt / DIS_CAR) ) {
 
 		int velRandom = rand() % VEL_OPP;

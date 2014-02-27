@@ -437,7 +437,8 @@ obj/local/armeabi/objs/cocos2dcpp_shared/__/__/Classes/GameScene.o: \
  /Users/Joan/Development/cocos2d-x-2.2.2/projects/PFCRace/proj.android/../../../extensions/spine/SkeletonJson.h \
  /Users/Joan/Development/cocos2d-x-2.2.2/projects/PFCRace/proj.android/../../../extensions/spine/CCSkeleton.h \
  /Users/Joan/Development/cocos2d-x-2.2.2/projects/PFCRace/proj.android/../../../extensions/spine/CCSkeletonAnimation.h \
- jni/../../Classes/GameManager.h jni/../../Classes/HelloWorldScene.h \
+ jni/../../Classes/Curva.h jni/../../Classes/GameManager.h \
+ jni/../../Classes/HelloWorldScene.h \
  jni/../../Classes/NDKHelper/NDKHelper.h \
  jni/../../Classes/jansson/jansson.h \
  jni/../../Classes/jansson/jansson_config.h \
@@ -1318,6 +1319,8 @@ jni/../../Classes/GameScene.h:
 /Users/Joan/Development/cocos2d-x-2.2.2/projects/PFCRace/proj.android/../../../extensions/spine/CCSkeleton.h:
 
 /Users/Joan/Development/cocos2d-x-2.2.2/projects/PFCRace/proj.android/../../../extensions/spine/CCSkeletonAnimation.h:
+
+jni/../../Classes/Curva.h:
 
 jni/../../Classes/GameManager.h:
 
