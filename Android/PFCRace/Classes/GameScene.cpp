@@ -43,10 +43,11 @@ CCScene* GameScene::scene()
     return scene;
 }
 
-GameScene::GameScene(): _car(NULL), _road(NULL), _labelVel(NULL), _labelDist(NULL), _oppCars(NULL)
+GameScene::GameScene(): _car(NULL), _road(NULL), _road2(NULL), _grass(NULL), _labelVel(NULL), _labelDist(NULL), _oppCars(NULL), _piano1(NULL), _piano2(NULL)
 {
 	_vel = 0.0;
 	_dist = 0.0;
+	_started = false;
 }
 
 GameScene::~GameScene()
@@ -66,111 +67,211 @@ bool GameScene::init()
 	}
 
 	// Variables de tamanyo
-	CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
+	CCSize vs = CCDirector::sharedDirector()->getVisibleSize();
 	CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
 
 	// Layer de arriba con el indicadores
-	CCLayerColor* layer_menu = CCLayerColor::create(ccc4(255,255,255,255));
-				  layer_menu->setContentSize(CCSizeMake(visibleSize.width, 100));
-				  layer_menu->setPosition(ccp(0, visibleSize.height-100));
+	/*CCLayerColor* layer_menu = CCLayerColor::create(ccc4(255,255,255,255));
+				  layer_menu->setContentSize(CCSizeMake(vs.width, 100));
+				  layer_menu->setPosition(ccp(0, vs.height-100));*/
 
 	// Boton de volver (menu)
 	CCMenuItem* button_back = CCMenuItemImage::create("btn_volver.png", "btn_volver_h.png", this, menu_selector(GameScene::menuBackCallback));
-				button_back->setPosition(ccp(105, 50));
+				button_back->setPosition(ccp(95, vs.height - 50));
 
 	CCMenu* menu = CCMenu::create(button_back, NULL);
 			menu->setPosition(ccp(0,0));
 
 	// Velocidad
 	CCString* stringVel = CCString::createWithFormat("%d km/h", (int)_vel);
-	_labelVel = CCLabelTTF::create(stringVel->getCString(), "Helvetica", 20, CCSizeMake(100, 30),
-																					kCCTextAlignmentCenter);
-	_labelVel->setColor(ccc3(0,0,0));
-	_labelVel->setPosition(ccp(visibleSize.width-70, 50));
+	_labelVel = CCLabelTTF::create(stringVel->getCString(), "Helvetica", 30, CCSizeMake(140, 50), kCCTextAlignmentCenter);
+	_labelVel->setColor(ccc3(255,255,255));
+	_labelVel->enableStroke(ccc3(0,0,0), 3.0);
+	_labelVel->setPosition(ccp(vs.width - 72, 50));
 
 	// Distancia
 	CCString* stringDist = CCString::createWithFormat("%d m", (int)_dist);
-	_labelDist = CCLabelTTF::create(stringDist->getCString(), "Helvetica", 20, CCSizeMake(100, 30),
-																					kCCTextAlignmentCenter);
-	_labelDist->setColor(ccc3(0,0,0));
-	_labelDist->setPosition(ccp(visibleSize.width/2, 50));
+	_labelDist = CCLabelTTF::create(stringDist->getCString(), "Helvetica", 30, CCSizeMake(140, 50), kCCTextAlignmentCenter);
+	_labelDist->setColor(ccc3(255,255,255));
+	_labelDist->enableStroke(ccc3(0,0,0), 3.0);
+	_labelDist->setPosition(ccp(72, 50));
+
+	// Click to start
+	_labelStart = CCLabelTTF::create("Click to Start", "Helvetica", 50, CCSizeMake(200, 200), kCCTextAlignmentCenter);
+	_labelStart->setColor(ccc3(255,255,255));
+	_labelStart->enableStroke(ccc3(0,0,0), 3.0);
+	_labelStart->setPosition(ccp(vs.width/2, vs.height/2));
 
 	// Hierba
 	ccTexParams tp = { GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
-	CCTexture2D* texture = CCTextureCache::sharedTextureCache()->addImage("texture_grass.jpg");
+	CCTexture2D* texture = CCTextureCache::sharedTextureCache()->addImage("texture_grass2.jpg");
 				 texture->setTexParameters(&tp);
-	_grass = CCSprite::createWithTexture(texture, CCRectMake(0, 0, visibleSize.width, visibleSize.height + 256));
-	_grass->setPosition( ccp( visibleSize.width/2, visibleSize.height/2 + 128 ) );
+	_grass = CCSprite::createWithTexture(texture, CCRectMake(0, 0, vs.width, vs.height + 256));
+	_grass->setPosition( ccp( vs.width/2, vs.height/2 + 128 ) );
 
 	// Carretera
-	texture = CCTextureCache::sharedTextureCache()->addImage("texture_road.jpg");
+	texture = CCTextureCache::sharedTextureCache()->addImage("texture_road2.jpg");
 	texture->setTexParameters(&tp);
-	_road = CCSprite::createWithTexture(texture, CCRectMake(0, 0, visibleSize.width * 0.7, visibleSize.height));
-	_road->setPosition( ccp( visibleSize.width/2, visibleSize.height/2 ) );
+	_road = CCSprite::createWithTexture(texture, CCRectMake(0, 0, 512, vs.height + 512));
+	_road->setPosition( ccp( vs.width/2, vs.height/2 + 256 ) );
 
 	// Pianos
 	texture = CCTextureCache::sharedTextureCache()->addImage("piano.png");
 	texture->setTexParameters(&tp);
-	_piano1 = CCSprite::createWithTexture(texture, CCRectMake(0, 0, 64, visibleSize.height + 64));
-	_piano1->setPosition( ccp(visibleSize.width * 0.15, visibleSize.height / 2 + 32) );
-	_piano2 = CCSprite::createWithTexture(texture, CCRectMake(0, 0, 64, visibleSize.height + 64));
-	_piano2->setPosition( ccp(visibleSize.width * 0.85, visibleSize.height / 2 + 32) );
+	_piano1 = CCSprite::createWithTexture(texture, CCRectMake(0, 0, 64, vs.height + 64));
+	_piano1->setPosition( ccp(vs.width * 0.15, vs.height / 2 + 32) );
+	_piano2 = CCSprite::createWithTexture(texture, CCRectMake(0, 0, 64, vs.height + 64));
+	_piano2->setPosition( ccp(vs.width * 0.85, vs.height / 2 + 32) );
 
 	// Coche
 	_car = CCSprite::create("car_behind.png");
-	_car->setPosition(ccp(visibleSize.width/2, 50));
+	_car->setPosition(ccp(vs.width/2, 50));
 
 	// Anyadimos los elementos a la vista
 	this->addChild(_grass, 1);
 	this->addChild(_road, 2);
-	this->addChild(_piano1, 2);
-	this->addChild(_piano2, 2);
+	//this->addChild(_piano1, 2);
+	//this->addChild(_piano2, 2);
 	this->addChild(_car, 3);
-	this->addChild(layer_menu, 10);
+	this->addChild(menu, 5);
+	this->addChild(_labelVel, 5);
+	this->addChild(_labelDist, 5);
+	this->addChild(_labelStart, 5);
+	//this->addChild(layer_menu, 10);
 
 	// Anyadimos los elementos al layer de arriba
-	layer_menu->addChild(menu);
+	/*layer_menu->addChild(menu);
 	layer_menu->addChild(_labelVel);
-	layer_menu->addChild(_labelDist);
+	layer_menu->addChild(_labelDist);*/
 
 	// Inicializamos el vector de coches en contra
 	_oppCars = new CCArray;
 
 	// Activamos el acelerometro y el touch
-	this->setAccelerometerEnabled(true);
     this->setTouchEnabled(true);
-
-    // Llamamos cada 0,1 segundos a la logica del juego
-    this->schedule( schedule_selector(GameScene::gameLogic), 0.1 );
-    this->schedule( schedule_selector(GameScene::updateFrame) );
 
     return true;
 }
 
 void GameScene::updateFrame(float dt)
 {
-	CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
+	CCSize vs = CCDirector::sharedDirector()->getVisibleSize();
 
-	long cmDist 	= _dist*100;
-	int offsetDist 	= cmDist % 667;
-	int offsetY		= offsetDist / 10;
+	//long cmDist 	= _dist*100;
+	//int offsetDist 	= cmDist % 667;
+	//int offsetY		= offsetDist / 10;
 
-	_piano1->setPosition( ccp(visibleSize.width * 0.15, visibleSize.height / 2 + 32 - offsetY) );
-	_piano2->setPosition( ccp(visibleSize.width * 0.85, visibleSize.height / 2 + 32 - offsetY) );
+	//_piano1->setPosition( ccp(vs.width * 0.15, vs.height / 2 + 32 - offsetY) );
+	//_piano2->setPosition( ccp(vs.width * 0.85, vs.height / 2 + 32 - offsetY) );
 
-	offsetDist 	= cmDist % 2667;
-	offsetY		= offsetDist / 10;
+	// Movemos el cesped y la carretera
+	float mRec	= (_vel/3.6) * dt;
+	float pxRec	= mRec / 0.039;
 
-	_grass->setPosition( ccp( visibleSize.width/2, visibleSize.height/2 + 128 - offsetY) );
+	CCPoint posRoad  = _road->getPosition();
+	CCPoint posGrass = _grass->getPosition();
+
+	if (posRoad.y - pxRec < vs.height/2 - 256) {
+		_road->setPosition( ccp(posRoad.x, posRoad.y + 512 - pxRec) );
+	} else {
+		_road->setPosition( ccp(posRoad.x, posRoad.y - pxRec) );
+	}
+
+	if (posGrass.y - pxRec < vs.height/2 - 128) {
+		_grass->setPosition( ccp(posGrass.x, posGrass.y + 256 - pxRec) );
+	} else {
+		_grass->setPosition( ccp(posGrass.x, posGrass.y - pxRec) );
+	}
+
+	// Tamanyos del coche y la carretera
+	CCRect roadRec 	= _road->boundingBox();
+	CCSize carSize 	= _car->getContentSize();
+
+
+	// Detectamos colision entre coche y coche contrario
+	//   - eliminamos al contrario
+	//	 - centramos a velocidad 0 al coche principal
+	CCRect carRect = CCRectMake(
+			_car->getPosition().x - (_car->getContentSize().width/2),
+			_car->getPosition().y - (_car->getContentSize().height/2),
+			_car->getContentSize().width,
+			_car->getContentSize().height);
+
+	CCObject *it = NULL;
+	CCARRAY_FOREACH(_oppCars, it)
+	{
+		CCSprite *oppCar = dynamic_cast<CCSprite*>(it);
+		CCRect oppCarRect = CCRectMake(
+				oppCar->getPosition().x - (oppCar->getContentSize().width/2),
+				oppCar->getPosition().y - (oppCar->getContentSize().height/2),
+				oppCar->getContentSize().width,
+				oppCar->getContentSize().height);
+
+		if (carRect.intersectsRect(oppCarRect))
+		{
+			// SONIDO DE CHOQUE
+			// ****************
+
+			// 1. Paramos los schedules y el acelerometro, y ponemos velocidad a 0
+			this->setAccelerometerEnabled(false);
+			//this->unscheduleAll();
+			_vel = 0;
+
+			// 2. Eliminamos el oponente con su efecto/accion
+			CCFiniteTimeAction* oppJump = CCSpawn::create(	CCJumpBy::create(4, ccp(500,0), 20, 12),
+															CCRotateBy::create(4, 2160),
+															NULL);
+			CCFiniteTimeAction* oppDel = CCCallFuncN::create( this, callfuncN_selector(GameScene::oppCarDelete));
+
+			// 3. Movemos el _car al centro con su efecto/accion
+			CCRepeat* _carVibration = CCRepeat::create(CCSequence::create(
+					CCMoveBy::create(0.05f, ccp(5,0)),
+					CCMoveBy::create(0.05f, ccp(-5,0)),
+					NULL), 40);
+			CCActionInterval* _carFadeIn = CCFadeIn::create(2.0f);
+			CCActionInterval* _carFadeOut = CCFadeOut::create(2.0f);
+			CCActionInstant* _carPlace = CCPlace::create(ccp(vs.width/2, 50));
+
+			// 4. Reanudamos carrera
+			CCFiniteTimeAction* resumeRace = CCCallFuncN::create( this, callfuncN_selector(GameScene::resumeRace));
+
+			// X. Ejecutamos todas las acciones
+			oppCar->runAction( CCSequence::create(oppJump, _carFadeOut, oppDel, NULL));
+			_car->runAction( _carVibration );
+			_car->runAction( CCSequence::create(_carFadeOut, _carPlace, _carFadeIn, resumeRace, NULL) );
+
+		}
+	}
+}
+
+void GameScene::oppCarDelete(CCNode* sender)
+{
+	CCSprite* oppCar = (CCSprite*) sender;
+
+	// Eliminamos el coche que se choca
+	_oppCars->removeObject(oppCar);
+	this->removeChild(oppCar);
+}
+
+void GameScene::resumeRace(CCNode* sender)
+{
+	// Llamamos cada 0,1 segundos a la logica del juego
+	this->schedule( schedule_selector(GameScene::gameLogic), 0.1 );
+	this->schedule( schedule_selector(GameScene::updateFrame) );
+
+	// Activamos el acelerometro y el touch
+	this->setAccelerometerEnabled(true);
 }
 
 void GameScene::gameLogic(float dt)
 {
+	CCSize vs = CCDirector::sharedDirector()->getVisibleSize();
+
 	// Actualizamos velocidad
 	CCString* stringVel = CCString::createWithFormat("%d km/h", (int)_vel);
 	_labelVel->setString(stringVel->getCString());
 
-	// Calculamos al distancia recorrida en 0,1s a velocidad _vel
+	// Calculamos la distancia recorrida en 0,1s a velocidad _vel
 	// 1km/h = 1000m/3600s = 1000m/36000ds (1ds = 0,1s)
 	float distAnt = _dist;
 	_dist += _vel/36;
@@ -198,7 +299,7 @@ void GameScene::gameLogic(float dt)
 		int posX 	= ( rand() % rangeX ) + minY;
 
 		// Colocamos y mostramos el coche
-		oppCar->setPosition( ccp( posX, roadRec.size.height ));
+		oppCar->setPosition( ccp( posX, vs.height + carSize.height ));
 		this->addChild(oppCar, 3);
 	}
 
@@ -216,12 +317,12 @@ void GameScene::gameLogic(float dt)
 		CCPoint auxPos = auxCar->getPosition();
 		CCPoint newPos = ccp(auxPos.x, auxPos.y - auxDist * roadRec.size.height / DIS_ROA);
 		CCFiniteTimeAction* actionMove = CCMoveTo::create( (float) 0.1, newPos );
-	    auxCar->runAction( CCSequence::create(actionMove, NULL) );
+		auxCar->runAction( CCSequence::create(actionMove, NULL) );
 
 		// Eliminamos al coche contrario si:
 		// 	 - se le pasa y queda por debajo de la pantalla
 		//	 - se aleja tanto por delante que dobla la carretera actual
-		if ( newPos.y > roadRec.size.height * 2 || newPos.y < 0 - carSize.height/2 ) {
+		if ( auxPos.y > vs.height * 2 || auxPos.y < 0 - carSize.height/2 ) {
 			this->removeChild(auxCar);
 			_oppCars->removeObject(auxCar);
 		}
@@ -296,6 +397,20 @@ void GameScene::ccTouchesEnded(CCSet* touches, CCEvent* event)
 	CCTouch* touch = (CCTouch*)( touches->anyObject() );
 	CCPoint location = touch->getLocationInView();
 	location = CCDirector::sharedDirector()->convertToGL(location);
+
+	if (!_started) {
+		_started = true;
+
+	    // Llamamos cada 0,1 segundos a la logica del juego
+	    this->schedule( schedule_selector(GameScene::gameLogic), 0.1 );
+	    this->schedule( schedule_selector(GameScene::updateFrame) );
+
+	    // Activamos el acelerometro y el touch
+	    this->setAccelerometerEnabled(true);
+
+	    // Quitamos el "Click to start"
+	    this->removeChild(_labelStart);
+	}
 }
 
 void GameScene::menuBackCallback(CCObject* pSender)

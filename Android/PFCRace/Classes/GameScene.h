@@ -16,14 +16,17 @@ class GameScene : public cocos2d::CCLayer
 protected:
 	cocos2d::CCSprite* _car;
 	cocos2d::CCSprite* _road;
+	cocos2d::CCSprite* _road2;
 	cocos2d::CCSprite* _grass;
 	cocos2d::CCLabelTTF* _labelVel;
 	cocos2d::CCLabelTTF* _labelDist;
+	cocos2d::CCLabelTTF* _labelStart;
 	cocos2d::CCArray* _oppCars;
 	cocos2d::CCSprite* _piano1;
 	cocos2d::CCSprite* _piano2;
 	float _vel;
 	float _dist;
+	bool _started;
 
 public:
 
@@ -41,6 +44,9 @@ public:
     virtual void didAccelerate(cocos2d::CCAcceleration* pAccelerationValue);
     void gameLogic(float dt);
     void updateFrame(float dt);
+
+    void oppCarDelete(cocos2d::CCNode* sender);
+    void resumeRace(cocos2d::CCNode* sender);
 };
 
 #endif // __HELLOWORLD_SCENE_H__
