@@ -10,6 +10,7 @@
 #include "HelloWorldScene.h"
 #include "Curva.h"
 #include "NDKHelper.h"
+#include <vector>
 
 USING_NS_CC;
 USING_NS_CC_EXT;
@@ -56,10 +57,13 @@ GameScene::GameScene()
 	_oppCars = NULL;
 	_piano1 = NULL;
 	_piano2 = NULL;
+	_curvaI = NULL;
+	_curvaD = NULL;
 	_vel = 0.0;
 	_dist = 0.0;
 	_started = false;
 	_nextCurva = 0;
+	_fuerzaCurva = 0;
 }
 
 GameScene::~GameScene()
@@ -67,9 +71,6 @@ GameScene::~GameScene()
 	if (_oppCars) {
 		_oppCars->release();
 		_oppCars = NULL;
-	}
-	if (_curvas) {
-		delete[]_curvas;
 	}
 }
 
@@ -142,6 +143,14 @@ bool GameScene::init()
 	_car = CCSprite::create("car_behind.png");
 	_car->setPosition(ccp(vs.width/2, 50));
 
+	// Creamos los indicadores de curva
+	_curvaI = CCSprite::create("curva_izq.png", CCRectMake(0,0,150,150));
+	_curvaI->setPosition(ccp(vs.width/2, vs.height/4*3));
+	_curvaI->retain();
+	_curvaD = CCSprite::create("curva_der.png", CCRectMake(0,0,150,150));
+	_curvaD->setPosition(ccp(vs.width/2, vs.height/4*3));
+	_curvaD->retain();
+
 	// Anyadimos los elementos a la vista
 	this->addChild(_grass, 1);
 	this->addChild(_road, 2);
@@ -159,13 +168,12 @@ bool GameScene::init()
 	layer_menu->addChild(_labelVel);
 	layer_menu->addChild(_labelDist);*/
 
+	// Inicializamos el vector de curvas
+	_curvas.push_back(Curva(250, 150, 2, false));
+	_curvas.push_back(Curva(800, 300, 5, true));
+
 	// Inicializamos el vector de coches en contra
 	_oppCars = new CCArray;
-
-	// Inicializamos el vector de curvas
-	_curvas = new Curva[2];
-	_curvas[0] = Curva(250, 150, 2, false);
-	_curvas[1] = Curva(800, 300, 5, true);
 
 	// Activamos el acelerometro y el touch
     this->setTouchEnabled(true);
@@ -348,6 +356,51 @@ void GameScene::gameLogic(float dt)
 		}
 	}
 
+	if (_nextCurva < _curvas.size())
+	{
+		int startCurva 	= _curvas[_nextCurva].getDist();
+		int endCurva 	= startCurva + _curvas[_nextCurva].getLong();
+
+		/*CCLOG("/////CURVA?/////");
+		CCLOG("startCurva = %d | endCurva = %d", startCurva, endCurva);
+		CCLOG("distAnt = %f | _dist = %f", distAnt, _dist);*/
+
+		// Comprobamos si viene curva 50 m antes de esta
+		if (_dist >= startCurva - 50 && startCurva - 50 >= distAnt) {
+			if (_curvas[_nextCurva].getIzq()) {
+				this->addChild(_curvaI, 5);
+			} else {
+				this->addChild(_curvaD, 5);
+			}
+		}
+
+		// Si estamos en curva lo hacemos parpadear
+		else if (_dist >= startCurva && startCurva >= distAnt) {
+			CCRepeatForever *parpadeo = CCRepeatForever::create( CCBlink::create(1, 2) );
+			if (_curvas[_nextCurva].getIzq()) {
+				_curvaI->runAction(parpadeo);
+				_fuerzaCurva = 1 * _curvas[_nextCurva].getFuerza();
+			} else {
+				_curvaD->runAction(parpadeo);
+				_fuerzaCurva = -1 * _curvas[_nextCurva].getFuerza();
+			}
+		}
+
+		// Si salimos de la curva quitamos el indicador
+		else if (_dist >= endCurva && endCurva >= distAnt) {
+
+			if (_curvas[_nextCurva].getIzq()) {
+				_curvaI->stopAllActions();
+				this->removeChild(_curvaI);
+			} else {
+				_curvaD->stopAllActions();
+				this->removeChild(_curvaD);
+			}
+			_nextCurva++;
+			_fuerzaCurva = 0;
+		}
+	}
+
 }
 
 void GameScene::didAccelerate(CCAcceleration* pAccelerationValue)
@@ -369,7 +422,7 @@ void GameScene::didAccelerate(CCAcceleration* pAccelerationValue)
     CCPoint ptNow  = _car->getPosition();
     CCPoint ptTemp = sDir->convertToUI(ptNow);
 
-    ptTemp.x += accX * 10.0;
+    ptTemp.x += accX * 10.0 + _fuerzaCurva;
 
     // Calculamos velocidad nueva
     if (accZ > 0) { // (movil boca abajo)
