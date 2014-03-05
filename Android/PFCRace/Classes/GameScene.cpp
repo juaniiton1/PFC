@@ -47,12 +47,16 @@ CCScene* GameScene::scene()
 
 GameScene::GameScene()
 {
+	_layerPause = NULL;
+	_layerEnd = NULL;
 	_car = NULL;
 	_road = NULL;
 	_road2 = NULL;
 	_grass = NULL;
 	_labelVel = NULL;
 	_labelDist = NULL;
+	_labelTime = NULL;
+	_labelTimeEnd = NULL;
 	_labelStart = NULL;
 	_oppCars = NULL;
 	_piano1 = NULL;
@@ -62,8 +66,11 @@ GameScene::GameScene()
 	_vel = 0.0;
 	_dist = 0.0;
 	_started = false;
+	_paused = false;
 	_nextCurva = 0;
 	_fuerzaCurva = 0;
+	_time = 0;
+	_mCircuito = 0;
 }
 
 GameScene::~GameScene()
@@ -71,6 +78,26 @@ GameScene::~GameScene()
 	if (_oppCars) {
 		_oppCars->release();
 		_oppCars = NULL;
+	}
+	if (_layerPause) {
+		_layerPause->release();
+		_layerPause = NULL;
+	}
+	if (_layerEnd) {
+		_layerEnd->release();
+		_layerEnd = NULL;
+	}
+	if (_curvaI) {
+		_curvaI->release();
+		_curvaI = NULL;
+	}
+	if (_curvaD) {
+		_curvaD->release();
+		_curvaD = NULL;
+	}
+	if (_labelStart) {
+		_labelStart->release();
+		_labelStart = NULL;
 	}
 }
 
@@ -86,16 +113,63 @@ bool GameScene::init()
 	CCSize vs = CCDirector::sharedDirector()->getVisibleSize();
 	CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
 
-	// Layer de arriba con el indicadores
-	/*CCLayerColor* layer_menu = CCLayerColor::create(ccc4(255,255,255,255));
-				  layer_menu->setContentSize(CCSizeMake(vs.width, 100));
-				  layer_menu->setPosition(ccp(0, vs.height-100));*/
+	// Layer con los botones al hacer pause
+	_layerPause = CCLayerColor::create(ccc4(255,255,255,0));
+	_layerPause->setContentSize(CCSizeMake(350, 100));
+	_layerPause->ignoreAnchorPointForPosition(false);
+	_layerPause->setAnchorPoint(ccp(0.5, 0.5));
+	_layerPause->setPosition(ccp(vs.width/2, vs.height/2));
+	_layerPause->retain();
 
-	// Boton de volver (menu)
-	CCMenuItem* button_back = CCMenuItemImage::create("btn_volver.png", "btn_volver_h.png", this, menu_selector(GameScene::menuBackCallback));
-				button_back->setPosition(ccp(95, vs.height - 50));
+	CCMenuItem* button_resume = CCMenuItemImage::create("btn_resume.png", "btn_resume_h.png", this, menu_selector(GameScene::menuResumeCallback));
+				button_resume->setPosition(ccp(50, 50));
+	CCMenuItem* button_restart = CCMenuItemImage::create("btn_restart.png", "btn_restart_h.png", this, menu_selector(GameScene::menuRestartCallback));
+				button_restart->setPosition(ccp(175, 50));
+	CCMenuItem* button_exit = CCMenuItemImage::create("btn_exit.png", "btn_exit_h.png", this, menu_selector(GameScene::menuExitCallback));
+				button_exit->setPosition(ccp(300, 50));
 
-	CCMenu* menu = CCMenu::create(button_back, NULL);
+	CCMenu* menu_pause = CCMenu::create(button_resume, button_restart, button_exit, NULL);
+			menu_pause->setPosition(ccp(0,0));
+
+	_layerPause->addChild(menu_pause);
+
+	// Layer que se muestra al terminar la carrera
+	_layerEnd = CCLayerColor::create(ccc4(0,0,0,0));
+	_layerEnd->setContentSize(CCSizeMake(225, 225));
+	_layerEnd->ignoreAnchorPointForPosition(false);
+	_layerEnd->setAnchorPoint(ccp(0.5, 0.5));
+	_layerEnd->setPosition(ccp(vs.width/2, vs.height/2));
+	_layerEnd->retain();
+
+	CCMenuItem* button_end_restart = CCMenuItemImage::create("btn_restart.png", "btn_restart_h.png", this, menu_selector(GameScene::menuRestartCallback));
+				button_end_restart->setPosition(ccp(50, 50));
+	CCMenuItem* button_end_exit = CCMenuItemImage::create("btn_exit.png", "btn_exit_h.png", this, menu_selector(GameScene::menuExitCallback));
+				button_end_exit->setPosition(ccp(175, 50));
+
+	CCMenu* menu_end = CCMenu::create(button_end_restart, button_end_exit, NULL);
+			menu_end->setPosition(ccp(0,0));
+
+	CCLayerColor* layerTime = CCLayerColor::create(ccc4(255,255,255,255));
+				  layerTime->setContentSize(CCSizeMake(225, 100));
+				  layerTime->ignoreAnchorPointForPosition(false);
+				  layerTime->setAnchorPoint(ccp(0.5, 0.5));
+				  layerTime->setPosition(ccp(112.5, 175));
+				  layerTime->retain();
+
+	_labelTimeEnd = CCLabelTTF::create("Time:\n0:00:000", "Helvetica", 40, CCSizeMake(225, 100), kCCTextAlignmentCenter);
+	_labelTimeEnd->setColor(ccc3(0,0,0));
+	_labelTimeEnd->setPosition(ccp(112.5, 50));
+	layerTime->addChild(_labelTimeEnd);
+
+	_layerEnd->addChild(menu_end);
+	_layerEnd->addChild(layerTime);
+
+
+	// Boton de pause (menu)
+	CCMenuItem* button_pause = CCMenuItemImage::create("btn_pause.png", "btn_pause_h.png", this, menu_selector(GameScene::menuPauseCallback));
+				button_pause->setPosition(ccp(75, vs.height - 75));
+
+	CCMenu* menu = CCMenu::create(button_pause, NULL);
 			menu->setPosition(ccp(0,0));
 
 	// Velocidad
@@ -112,11 +186,23 @@ bool GameScene::init()
 	_labelDist->enableStroke(ccc3(0,0,0), 3.0);
 	_labelDist->setPosition(ccp(72, 50));
 
+	// Tiempo
+	int hs = _time/3600000;
+	int mins = (_time%3600000)/60000;
+	int ss = ((_time%3600000)%60000)/1000;
+	int ms = ((_time%3600000)%60000)%1000;
+	CCString* stringTime = CCString::createWithFormat("%d:%02d:%03d", mins, ss, ms);
+	_labelTime = CCLabelTTF::create(stringTime->getCString(), "Helvetica", 30, CCSizeMake(140, 50), kCCTextAlignmentCenter);
+	_labelTime->setColor(ccc3(255,255,255));
+	_labelTime->enableStroke(ccc3(0,0,0), 3.0);
+	_labelTime->setPosition(ccp(vs.width - 72, vs.height - 50));
+
 	// Click to start
 	_labelStart = CCLabelTTF::create("Click to Start", "Helvetica", 50, CCSizeMake(200, 200), kCCTextAlignmentCenter);
 	_labelStart->setColor(ccc3(255,255,255));
 	_labelStart->enableStroke(ccc3(0,0,0), 3.0);
 	_labelStart->setPosition(ccp(vs.width/2, vs.height/2));
+	_labelStart->retain();
 
 	// Hierba
 	ccTexParams tp = { GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
@@ -140,16 +226,17 @@ bool GameScene::init()
 	_piano2->setPosition( ccp(vs.width * 0.85, vs.height / 2 + 32) );
 
 	// Coche
-	_car = CCSprite::create("car_behind.png");
+	_car = CCSprite::create("car_above_blue.png");
 	_car->setPosition(ccp(vs.width/2, 50));
 
 	// Creamos los indicadores de curva
-	_curvaI = CCSprite::create("curva_izq.png", CCRectMake(0,0,150,150));
+	_curvaI = CCSprite::create("curva_izq.png");
 	_curvaI->setPosition(ccp(vs.width/2, vs.height/4*3));
 	_curvaI->retain();
-	_curvaD = CCSprite::create("curva_der.png", CCRectMake(0,0,150,150));
+	_curvaD = CCSprite::create("curva_der.png");
 	_curvaD->setPosition(ccp(vs.width/2, vs.height/4*3));
 	_curvaD->retain();
+
 
 	// Anyadimos los elementos a la vista
 	this->addChild(_grass, 1);
@@ -160,17 +247,15 @@ bool GameScene::init()
 	this->addChild(menu, 5);
 	this->addChild(_labelVel, 5);
 	this->addChild(_labelDist, 5);
+	this->addChild(_labelTime, 5);
 	this->addChild(_labelStart, 5);
-	//this->addChild(layer_menu, 10);
-
-	// Anyadimos los elementos al layer de arriba
-	/*layer_menu->addChild(menu);
-	layer_menu->addChild(_labelVel);
-	layer_menu->addChild(_labelDist);*/
 
 	// Inicializamos el vector de curvas
-	_curvas.push_back(Curva(250, 150, 2, false));
-	_curvas.push_back(Curva(800, 300, 5, true));
+	_curvas.push_back(Curva(250, 200, 2, false));
+	_curvas.push_back(Curva(950, 200, 2, false));
+	_curvas.push_back(Curva(1650, 200, 2, false));
+	_curvas.push_back(Curva(2350, 200, 2, false));
+	_mCircuito = 2800;
 
 	// Inicializamos el vector de coches en contra
 	_oppCars = new CCArray;
@@ -270,6 +355,15 @@ void GameScene::updateFrame(float dt)
 
 		}
 	}
+
+	// Sumamos el tiempo
+	_time += (long)(dt*1000);
+	int hs = _time/3600000;
+	int mins = (_time%3600000)/60000;
+	int ss = ((_time%3600000)%60000)/1000;
+	int ms = ((_time%3600000)%60000)%1000;
+	CCString* stringTime = CCString::createWithFormat("%d:%02d:%03d", mins, ss, ms);
+	_labelTime->setString(stringTime->getCString());
 }
 
 void GameScene::oppCarDelete(CCNode* sender)
@@ -289,6 +383,29 @@ void GameScene::resumeRace(CCNode* sender)
 
 	// Activamos el acelerometro y el touch
 	this->setAccelerometerEnabled(true);
+}
+
+void GameScene::showCar(CCNode* sender)
+{
+	CCSize vs = CCDirector::sharedDirector()->getVisibleSize();
+	CCSize carSize 	= _car->getContentSize();
+
+	CCSprite* warning = (CCSprite*) sender;
+
+	// Velocidad del coche en contra
+	int velRandom = rand() % VEL_OPP;
+
+	int posX = warning->getPosition().x;
+
+	// Colocamos y mostramos el coche
+	CCSprite* oppCar = CCSprite::create("car_above_orange.png");
+					  oppCar->setTag(velRandom);
+					  oppCar->setPosition( ccp( posX, vs.height + carSize.height/2 ));
+	_oppCars->addObject(oppCar);
+	this->addChild(oppCar, 3);
+
+	// Eliminamos el warning temporal
+	this->removeChild(warning);
 }
 
 void GameScene::gameLogic(float dt)
@@ -315,20 +432,21 @@ void GameScene::gameLogic(float dt)
 	// Cada 100 metros sacamos un coche en contra
 	if ( (int) (_dist / DIS_CAR) > (int) (distAnt / DIS_CAR) ) {
 
-		int velRandom = rand() % VEL_OPP;
-
-		CCSprite* oppCar = CCSprite::create("car_behind.png", CCRectMake(0,0,100,84));
-				  oppCar->setTag(velRandom);
-		_oppCars->addObject(oppCar);
-
 		// Calculamos la posicion de salida (random)
 		int rangeX 	= roadRec.size.width - carSize.width;
 		int minY 	= roadRec.origin.x + carSize.width/2;
 		int posX 	= ( rand() % rangeX ) + minY;
 
-		// Colocamos y mostramos el coche
-		oppCar->setPosition( ccp( posX, vs.height + carSize.height ));
-		this->addChild(oppCar, 3);
+		// Creamos el indicador de coche en contra
+		CCSprite* warning = CCSprite::create("warning.png");
+		this->addChild(warning, 4);
+
+		// Mostramos el warning donde saldra el coche y lo sacamos
+		CCActionInstant* _wPlace = CCPlace::create(ccp(posX, vs.height - 50));
+		CCActionInterval* _wParpadeo = CCBlink::create(2, 4);
+		CCActionInstant* _wReplace = CCPlace::create(ccp(posX, vs.height + 100));
+		CCFiniteTimeAction* _showCar = CCCallFuncN::create( this, callfuncN_selector(GameScene::showCar));
+		warning->runAction( CCSequence::create(_wPlace, _wParpadeo, _wReplace, _showCar, NULL) );
 	}
 
 	// Movemos a los coches en direccion contraria
@@ -350,7 +468,7 @@ void GameScene::gameLogic(float dt)
 		// Eliminamos al coche contrario si:
 		// 	 - se le pasa y queda por debajo de la pantalla
 		//	 - se aleja tanto por delante que dobla la carretera actual
-		if ( auxPos.y > vs.height * 2 || auxPos.y < 0 - carSize.height/2 ) {
+		if ( auxPos.y > vs.height + carSize.height || auxPos.y < 0 - carSize.height/2 ) {
 			this->removeChild(auxCar);
 			_oppCars->removeObject(auxCar);
 		}
@@ -360,10 +478,6 @@ void GameScene::gameLogic(float dt)
 	{
 		int startCurva 	= _curvas[_nextCurva].getDist();
 		int endCurva 	= startCurva + _curvas[_nextCurva].getLong();
-
-		/*CCLOG("/////CURVA?/////");
-		CCLOG("startCurva = %d | endCurva = %d", startCurva, endCurva);
-		CCLOG("distAnt = %f | _dist = %f", distAnt, _dist);*/
 
 		// Comprobamos si viene curva 50 m antes de esta
 		if (_dist >= startCurva - 50 && startCurva - 50 >= distAnt) {
@@ -398,6 +512,29 @@ void GameScene::gameLogic(float dt)
 			}
 			_nextCurva++;
 			_fuerzaCurva = 0;
+		}
+	}
+
+	// Hemos llegado al final del circuito
+	if (_dist >= _mCircuito) {
+
+		this->setAccelerometerEnabled(false);
+		this->unscheduleAllSelectors();
+
+		CCFiniteTimeAction* actionMove = CCMoveBy::create( (float) 3.0, ccp(0, 600) );
+		_car->runAction( CCSequence::create(actionMove, NULL) );
+
+		if (!_paused) {
+			_paused = true;
+
+			int hs = _time/3600000;
+			int mins = (_time%3600000)/60000;
+			int ss = ((_time%3600000)%60000)/1000;
+			int ms = ((_time%3600000)%60000)%1000;
+			CCString* stringTime = CCString::createWithFormat("Time:\n%d:%02d:%03d", mins, ss, ms);
+			_labelTimeEnd->setString(stringTime->getCString());
+
+			this->addChild(_layerEnd, 10);
 		}
 	}
 
@@ -486,7 +623,66 @@ void GameScene::ccTouchesEnded(CCSet* touches, CCEvent* event)
 	}
 }
 
-void GameScene::menuBackCallback(CCObject* pSender)
+void GameScene::menuPauseCallback(CCObject* pSender)
+{
+	if (!_paused) {
+		this->setAccelerometerEnabled(false);
+		this->unscheduleAllSelectors();
+
+		this->addChild(_layerPause, 10);
+		_paused = true;
+	}
+}
+
+void GameScene::menuResumeCallback(CCObject* pSender)
+{
+	if (_started) {
+		// Llamamos cada 0,1 segundos a la logica del juego
+		this->schedule( schedule_selector(GameScene::gameLogic), 0.1 );
+		this->schedule( schedule_selector(GameScene::updateFrame) );
+
+		// Activamos el acelerometro y el touch
+		this->setAccelerometerEnabled(true);
+	}
+	this->removeChild(_layerPause);
+	_paused = false;
+}
+
+void GameScene::menuRestartCallback(CCObject* pSender)
+{
+	CCSize vs = CCDirector::sharedDirector()->getVisibleSize();
+
+	_paused = false;
+	_started = false;
+	_vel = 0;
+	_dist = 0;
+	_time = 0;
+	_nextCurva = 0;
+
+	this->removeChild(_layerPause);
+	this->removeChild(_layerEnd);
+	this->addChild(_labelStart, 5);
+	_curvaI->stopAllActions();
+	this->removeChild(_curvaI);
+	_curvaD->stopAllActions();
+	this->removeChild(_curvaD);
+
+
+	_car->setPosition(ccp(vs.width/2, 50));
+	_labelVel->setString("0 km/h");
+	_labelDist->setString("0 m");
+	_labelTime->setString("0:00:000");
+
+	CCObject *it = NULL;
+	CCARRAY_FOREACH(_oppCars, it)
+	{
+		CCSprite *oppCar = dynamic_cast<CCSprite*>(it);
+		this->removeChild(oppCar);
+		_oppCars->removeObject(oppCar);
+	}
+}
+
+void GameScene::menuExitCallback(CCObject* pSender)
 {
 	CCDirector::sharedDirector()->replaceScene(HelloWorld::scene());
 }
