@@ -37,46 +37,59 @@ bool HelloWorld::init()
 		return false;
 	}
 
-	CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
+	CCSize vs = CCDirector::sharedDirector()->getVisibleSize();
 	CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
 
 	// Fondo con la textura de madera
-	CCTexture2D *texture = CCTextureCache::sharedTextureCache()->addImage("purty_wood.png");
 	ccTexParams tp = { GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
-	texture->setTexParameters(&tp);
-	CCSprite *background = CCSprite::createWithTexture(texture,
-			CCRectMake(0, 0, visibleSize.width, visibleSize.height));
-	background->setPosition( ccp( visibleSize.width/2, visibleSize.height/2 ) );
+	CCTexture2D* texture = CCTextureCache::sharedTextureCache()->addImage("purty_wood.png");
+				 texture->setTexParameters(&tp);
+	CCSprite* background = CCSprite::createWithTexture(texture, CCRectMake(0, 0, vs.width, vs.height));
+			  background->setPosition( ccp( vs.width/2, vs.height/2 ) );
 
 	this->addChild(background, 1);
 
 	// www.colourlovers.com/palette/298635/wooden_color_pencil
-	CCMenuItem *pEnterItem  = CCMenuItemImage::create("icon_bulb.png", "icon_bulb_hover.png", this, menu_selector(HelloWorld::menuEnterCallback));
-	CCMenuItem *pConfigItem = CCMenuItemImage::create("icon_settings.png", "icon_settings_hover.png", this, menu_selector(HelloWorld::menuConfigCallback));
-	CCMenuItem *pCloseItem  = CCMenuItemImage::create("icon_exit.png", "icon_exit_hover.png", this, menu_selector(HelloWorld::menuCloseCallback));
+	CCMenuItem* menuPlay = CCMenuItemImage::create("btn_play.png", "btn_play_h.png", this, menu_selector(HelloWorld::menuPlayCallback));
+	CCMenuItem* menuRank = CCMenuItemImage::create("btn_ranking.png", "btn_ranking_h.png", this, menu_selector(HelloWorld::menuRankCallback));
+	CCMenuItem* menuSett = CCMenuItemImage::create("btn_settings.png", "btn_settings_h.png", this, menu_selector(HelloWorld::menuSettCallback));
+	CCMenuItem* menuExit = CCMenuItemImage::create("btn_exit.png", "btn_exit_h.png", this, menu_selector(HelloWorld::menuExitCallback));
 
-	CCMenu* pMenu = CCMenu::create(pEnterItem, pConfigItem, pCloseItem, NULL);
-	pMenu->alignItemsHorizontallyWithPadding(60);
+	menuPlay->setPosition(ccp(vs.width/2, vs.height/2 + 100 - (200 - 162.5) ));
+	menuRank->setPosition(ccp(vs.width/2 - 125, vs.height/2 - (200 - 162.5) - 75 ));
+	menuSett->setPosition(ccp(vs.width/2, vs.height/2 - (200 - 162.5) - 75 ));
+	menuExit->setPosition(ccp(vs.width/2 + 125, vs.height/2 - (200 - 162.5) - 75 ));
+
+	CCMenu* pMenu = CCMenu::create(menuPlay, menuSett, menuRank, menuExit, NULL);
+			pMenu->setPosition(ccp(0,0));
 
 	this->addChild(pMenu, 5);
 
     this->setTouchEnabled(true);
 
+    // Inicializamos los valores de BBDD
+    std::string user = CCUserDefault::sharedUserDefault()->getStringForKey("user");
+    if (user == "") CCUserDefault::sharedUserDefault()->setStringForKey("user", "Player 1");
+
     return true;
 }
 
-void HelloWorld::menuEnterCallback(CCObject* pSender)
+void HelloWorld::menuPlayCallback(CCObject* pSender)
 {
 	CCDirector::sharedDirector()->replaceScene(GameScene::scene());
 }
 
-void HelloWorld::menuConfigCallback(CCObject* pSender)
+void HelloWorld::menuRankCallback(CCObject* pSender)
 {
-	//CCDirector::sharedDirector()->replaceScene(OptionsScene::scene());
 	CCDirector::sharedDirector()->replaceScene(RankingScene::scene());
 }
 
-void HelloWorld::menuCloseCallback(CCObject* pSender)
+void HelloWorld::menuSettCallback(CCObject* pSender)
+{
+	CCDirector::sharedDirector()->replaceScene(OptionsScene::scene());
+}
+
+void HelloWorld::menuExitCallback(CCObject* pSender)
 {
 	#if (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT) || (CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
 		CCMessageBox("You pressed the close button. Windows Store Apps do not implement a close button.","Alert");

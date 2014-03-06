@@ -28,8 +28,22 @@ CCScene* OptionsScene::scene()
     return scene;
 }
 
-OptionsScene::OptionsScene():label_connected(NULL), input_ip(NULL), input_port(NULL), con_smile(NULL)
+OptionsScene::OptionsScene()
 {
+	label_connected = NULL;
+	input_ip = NULL;
+	input_port = NULL;
+	input_user = NULL;
+	con_smile = NULL;
+	color_preview = NULL;
+	// Inicializamos el vector de colores
+	colors.push_back(Color(0, 0, 255));
+	colors.push_back(Color(0, 255, 0));
+	colors.push_back(Color(0, 255, 255));
+	colors.push_back(Color(255, 0, 0));
+	colors.push_back(Color(255, 0, 255));
+	colors.push_back(Color(255, 255, 0));
+	colors.push_back(Color(255, 255, 255));
 }
 
 OptionsScene::~OptionsScene()
@@ -45,25 +59,25 @@ bool OptionsScene::init()
 		return false;
 	}
 
-	CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
+	CCSize vs = CCDirector::sharedDirector()->getVisibleSize();
 	CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
 
 	// Fondo con la textura de madera
 	ccTexParams tp = { GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
 	CCTexture2D* texture = CCTextureCache::sharedTextureCache()->addImage("purty_wood.png");
 				 texture->setTexParameters(&tp);
-	CCSprite* background = CCSprite::createWithTexture(texture, CCRectMake(0, 0, visibleSize.width, visibleSize.height));
-			  background->setPosition( ccp( visibleSize.width/2, visibleSize.height/2 ) );
+	CCSprite* background = CCSprite::createWithTexture(texture, CCRectMake(0, 0, vs.width, vs.height));
+			  background->setPosition( ccp( vs.width/2, vs.height/2 ) );
 
 	this->addChild(background, 1);
 
 	con_smile = CCSprite::create("con_wait.png", CCRectMake(0,0,64,64) );
-	con_smile->setPosition( ccp(visibleSize.width - 64, visibleSize.height - 64) );
+	con_smile->setPosition( ccp(vs.width - 64, vs.height - 64) );
 
-	CCSize editBoxSize = CCSizeMake(250, 60);
+	CCSize editBoxSize = CCSizeMake(200, 50);
 
-	input_ip = CCEditBox::create(editBoxSize, CCScale9Sprite::create("edittext.9.png"));
-	input_ip->setPosition(ccp(origin.x + visibleSize.width/3, origin.y + visibleSize.height/2 + 40));
+	input_ip = CCEditBox::create(editBoxSize, CCScale9Sprite::create("edittext2.9.png"));
+	input_ip->setPosition(ccp(vs.width/2 - 125, origin.y + vs.height/2 + 12.5 + 25));
 	input_ip->setFontName("Helvetica");
 	input_ip->setFontSize(25);
 	input_ip->setFontColor(ccc3(50,50,50));
@@ -73,9 +87,8 @@ bool OptionsScene::init()
 	input_ip->setInputMode(kEditBoxInputModeSingleLine);
 	input_ip->setInputFlag(kEditBoxInputFlagSensitive);
 
-
-	input_port = CCEditBox::create(editBoxSize, CCScale9Sprite::create("edittext.9.png"));
-	input_port->setPosition(ccp(origin.x + visibleSize.width/3, origin.y + visibleSize.height/2 - 40));
+	input_port = CCEditBox::create(editBoxSize, CCScale9Sprite::create("edittext2.9.png"));
+	input_port->setPosition(ccp(vs.width/2 - 125, vs.height/2 - 12.5 - 25));
 	input_port->setFontName("Helvetica");
 	input_port->setFontSize(25);
 	input_port->setFontColor(ccc3(50,50,50));
@@ -85,10 +98,38 @@ bool OptionsScene::init()
 	input_port->setInputMode(kEditBoxInputModeNumeric);
 	input_port->setInputFlag(kEditBoxInputFlagSensitive);
 
-	label_connected = CCLabelTTF::create("No conectado", "Helvetica", 30, CCSizeMake(245, 40),
-																				kCCTextAlignmentCenter);
+	std::string user = CCUserDefault::sharedUserDefault()->getStringForKey("user");
+
+	input_user = CCEditBox::create(editBoxSize, CCScale9Sprite::create("edittext3.9.png"));
+	input_user->setPosition(ccp(vs.width/2 + 125, vs.height/2 + 12.5 + 25));
+	input_user->setFontName("Helvetica");
+	input_user->setFontSize(25);
+	input_user->setFontColor(ccc3(50,50,50));
+	input_user->setPlaceHolder("Nombre:");
+	input_user->setText(user.c_str());
+	input_user->setPlaceholderFontColor(ccc3(150,150,150));
+	input_user->setInputMode(kEditBoxInputModeSingleLine);
+	input_user->setInputFlag(kEditBoxInputFlagSensitive);
+
+	CCMenuItem* color_next = CCMenuItemImage::create("color_next.png", "color_next_h.png", this, menu_selector(OptionsScene::colorNextCallback));
+				color_next->setPosition(ccp(vs.width/2 + 125 + 75, vs.height/2 - 12.5 - 25));
+
+	CCMenuItem* color_prev = CCMenuItemImage::create("color_prev.png", "color_prev_h.png", this, menu_selector(OptionsScene::colorPrevCallback));
+				color_prev->setPosition(ccp(vs.width/2 + 125 - 75, vs.height/2 - 12.5 - 25));
+
+	int iColor = CCUserDefault::sharedUserDefault()->getIntegerForKey("color");
+	Color color = colors[iColor];
+	color_preview = CCSprite::create("color_preview.png");
+	color_preview->setPosition( ccp(vs.width/2 + 125, vs.height/2 - 12.5 - 25) );
+	color_preview->setColor(ccc3(color.r, color.g, color.b));
+
+	CCLabelTTF* label_player = CCLabelTTF::create("Jugador", "fonts/FrancoisOne.ttf", 30, CCSizeMake(200, 50), kCCTextAlignmentCenter);
+				label_player->setColor(ccc3(0,0,0));
+				label_player->setPosition(ccp(vs.width/2 + 125, vs.height/2 + 12.5 + 50 + 25 + 25));
+
+	label_connected = CCLabelTTF::create("No conectado", "fonts/FrancoisOne.ttf", 30, CCSizeMake(200, 50), kCCTextAlignmentCenter);
 	label_connected->setColor(ccc3(255,0,0));
-	label_connected->setPosition(ccp(visibleSize.width/3, (visibleSize.height/5) * 4));
+	label_connected->setPosition(ccp(vs.width/2 - 125, vs.height/2 + 12.5 + 50 + 25 + 25));
 
 	bool connected = GameManager::sharedGameManager()->getConnected();
 
@@ -106,19 +147,22 @@ bool OptionsScene::init()
 		input_port->setText(aux_port);
 	}
 
-	CCMenuItem *button_connect = CCMenuItemImage::create("btn_conectar.png", "btn_conectar_h.png", this, menu_selector(OptionsScene::menuConnectCallback));
-	button_connect->setPosition(ccp(visibleSize.width/3, visibleSize.height/5));
+	CCMenuItem* button_connect = CCMenuItemImage::create("btn_conectar.png", "btn_conectar_h.png", this, menu_selector(OptionsScene::menuConnectCallback));
+				button_connect->setPosition(ccp(vs.width/2 - 125, vs.height/2 - 12.5 - 50 - 25 - 25));
 
-	CCMenuItem *button_back = CCMenuItemImage::create("btn_aceptar.png", "btn_aceptar_h.png", this, menu_selector(OptionsScene::menuBackCallback));
-	button_back->setPosition(ccp((visibleSize.width/3)*2, visibleSize.height/5));
+	CCMenuItem* button_back = CCMenuItemImage::create("btn_aceptar.png", "btn_aceptar_h.png", this, menu_selector(OptionsScene::menuBackCallback));
+				button_back->setPosition(ccp(vs.width/2 + 125, vs.height/2 - 12.5 - 50 - 25 - 25));
 
-	CCMenu* menu = CCMenu::create(button_connect, button_back, NULL);
-	menu->setPosition(ccp(0,0));
+	CCMenu* menu = CCMenu::create(button_connect, button_back, color_next, color_prev, NULL);
+			menu->setPosition(ccp(0,0));
 
 	this->addChild(con_smile, 5);
+	this->addChild(color_preview, 5);
 	this->addChild(label_connected, 5);
+	this->addChild(label_player, 5);
 	this->addChild(input_ip, 5);
 	this->addChild(input_port, 5);
+	this->addChild(input_user, 5);
 	this->addChild(menu, 5);
 
 	NDKHelper::AddSelector("OptionsSelectors", "connectionOk",
@@ -161,12 +205,35 @@ void OptionsScene::connectionError(CCNode *sender, void *data)
 void OptionsScene::menuConnectCallback(CCObject* pSender)
 {
 	CCDictionary* prms = CCDictionary::create();
-	prms->setObject(CCString::create(input_ip->getText()), "ip");
-	prms->setObject(CCString::create(input_port->getText()), "port");
+				  prms->setObject(CCString::create(input_ip->getText()), "ip");
+				  prms->setObject(CCString::create(input_port->getText()), "port");
 	SendMessageWithParams(string("SelectorConnect"), prms);
 }
 
 void OptionsScene::menuBackCallback(CCObject* pSender)
 {
+	// Guardamos el valor del nombre de jugador
+	CCUserDefault::sharedUserDefault()->setStringForKey("user", input_user->getText());
+
 	CCDirector::sharedDirector()->replaceScene(HelloWorld::scene());
+}
+
+void OptionsScene::colorNextCallback(CCObject* pSender)
+{
+	int iColor = CCUserDefault::sharedUserDefault()->getIntegerForKey("color");
+		iColor = (iColor + 1) % 7;
+	Color color = colors[iColor];
+	color_preview->setColor(ccc3(color.r, color.g, color.b));
+
+	CCUserDefault::sharedUserDefault()->setIntegerForKey("color", iColor);
+}
+
+void OptionsScene::colorPrevCallback(CCObject* pSender)
+{
+	int iColor = CCUserDefault::sharedUserDefault()->getIntegerForKey("color");
+		iColor = (iColor - 1 + 7) % 7;
+	Color color = colors[iColor];
+	color_preview->setColor(ccc3(color.r, color.g, color.b));
+
+	CCUserDefault::sharedUserDefault()->setIntegerForKey("color", iColor);
 }

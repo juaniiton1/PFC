@@ -156,7 +156,7 @@ bool GameScene::init()
 				  layerTime->setPosition(ccp(112.5, 175));
 				  layerTime->retain();
 
-	_labelTimeEnd = CCLabelTTF::create("Time:\n0:00:000", "Helvetica", 30, CCSizeMake(225, 100), kCCTextAlignmentCenter);
+	_labelTimeEnd = CCLabelTTF::create("Time:\n0:00:000", "fonts/FrancoisOne.ttf", 30, CCSizeMake(225, 100), kCCTextAlignmentCenter);
 	_labelTimeEnd->setColor(ccc3(0,0,0));
 	_labelTimeEnd->setPosition(ccp(112.5, 50));
 	layerTime->addChild(_labelTimeEnd);
@@ -174,16 +174,14 @@ bool GameScene::init()
 
 	// Velocidad
 	CCString* stringVel = CCString::createWithFormat("%d km/h", (int)_vel);
-	_labelVel = CCLabelTTF::create(stringVel->getCString(), "Helvetica", 30, CCSizeMake(140, 50), kCCTextAlignmentCenter);
+	_labelVel = CCLabelTTF::create(stringVel->getCString(), "fonts/FrancoisOne.ttf", 30, CCSizeMake(140, 50), kCCTextAlignmentCenter);
 	_labelVel->setColor(ccc3(255,255,255));
-	_labelVel->enableStroke(ccc3(0,0,0), 3.0);
 	_labelVel->setPosition(ccp(vs.width - 72, 50));
 
 	// Distancia
 	CCString* stringDist = CCString::createWithFormat("%d m", (int)_dist);
-	_labelDist = CCLabelTTF::create(stringDist->getCString(), "Helvetica", 30, CCSizeMake(140, 50), kCCTextAlignmentCenter);
+	_labelDist = CCLabelTTF::create(stringDist->getCString(), "fonts/FrancoisOne.ttf", 30, CCSizeMake(140, 50), kCCTextAlignmentCenter);
 	_labelDist->setColor(ccc3(255,255,255));
-	_labelDist->enableStroke(ccc3(0,0,0), 3.0);
 	_labelDist->setPosition(ccp(72, 50));
 
 	// Tiempo
@@ -192,15 +190,13 @@ bool GameScene::init()
 	int ss = ((_time%3600000)%60000)/1000;
 	int ms = ((_time%3600000)%60000)%1000;
 	CCString* stringTime = CCString::createWithFormat("%d:%02d:%03d", mins, ss, ms);
-	_labelTime = CCLabelTTF::create(stringTime->getCString(), "Helvetica", 30, CCSizeMake(140, 50), kCCTextAlignmentCenter);
+	_labelTime = CCLabelTTF::create(stringTime->getCString(), "fonts/FrancoisOne.ttf", 30, CCSizeMake(140, 50), kCCTextAlignmentCenter);
 	_labelTime->setColor(ccc3(255,255,255));
-	_labelTime->enableStroke(ccc3(0,0,0), 3.0);
 	_labelTime->setPosition(ccp(vs.width - 72, vs.height - 50));
 
 	// Click to start
-	_labelStart = CCLabelTTF::create("Click to Start", "Helvetica", 50, CCSizeMake(200, 200), kCCTextAlignmentCenter);
+	_labelStart = CCLabelTTF::create("Click to Start", "fonts/FrancoisOne.ttf", 50, CCSizeMake(200, 200), kCCTextAlignmentCenter);
 	_labelStart->setColor(ccc3(255,255,255));
-	_labelStart->enableStroke(ccc3(0,0,0), 3.0);
 	_labelStart->setPosition(ccp(vs.width/2, vs.height/2));
 	_labelStart->retain();
 
@@ -331,8 +327,8 @@ void GameScene::updateFrame(float dt)
 			_vel = 0;
 
 			// 2. Eliminamos el oponente con su efecto/accion
-			CCFiniteTimeAction* oppJump = CCSpawn::create(	CCJumpBy::create(4, ccp(500,0), 20, 12),
-															CCRotateBy::create(4, 2160),
+			CCFiniteTimeAction* oppJump = CCSpawn::create(	CCMoveBy::create(8, ccp(0,500)),
+															//CCRotateBy::create(8, 4320),
 															NULL);
 			CCFiniteTimeAction* oppDel = CCCallFuncN::create( this, callfuncN_selector(GameScene::oppCarDelete));
 
@@ -555,8 +551,9 @@ void GameScene::gameLogic(float dt)
 				} else {
 					trobat = true;
 					// Actualizamos el actual
+					std::string username  = CCUserDefault::sharedUserDefault()->getStringForKey("user");
 					CCUserDefault::sharedUserDefault()->setIntegerForKey(iKeyTimeM1->getCString(), _time);
-					CCUserDefault::sharedUserDefault()->setStringForKey(iKeyUserM1->getCString(), "Player 1");
+					CCUserDefault::sharedUserDefault()->setStringForKey(iKeyUserM1->getCString(), username);
 				}
 			}
 			if (nRecords < 5) CCUserDefault::sharedUserDefault()->setIntegerForKey("map1", nRecords+1);

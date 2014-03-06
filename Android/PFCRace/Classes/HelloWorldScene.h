@@ -14,9 +14,10 @@ public:
 	static cocos2d::CCScene* scene();
 
 	// a selector callback
-	void menuEnterCallback(CCObject* pSender);
-	void menuConfigCallback(CCObject* pSender);
-	void menuCloseCallback(CCObject* pSender);
+	void menuPlayCallback(CCObject* pSender);
+	void menuSettCallback(CCObject* pSender);
+	void menuRankCallback(CCObject* pSender);
+	void menuExitCallback(CCObject* pSender);
 
 	// implement the "static node()" method manually
 	CREATE_FUNC(HelloWorld);

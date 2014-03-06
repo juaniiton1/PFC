@@ -14,6 +14,7 @@ LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../Classes/RankingScene.cpp \
                    ../../Classes/GameManager.cpp \
                    ../../Classes/Curva.cpp \
+                   ../../Classes/Color.cpp \
                    ../../Classes/jansson/dump.c \
                    ../../Classes/jansson/error.c \
                    ../../Classes/jansson/hashtable.c \

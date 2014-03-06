@@ -440,7 +440,8 @@ obj/local/armeabi/objs/cocos2dcpp_shared/__/__/Classes/HelloWorldScene.o: \
  /Users/Joan/Development/cocos2d-x-2.2.2/projects/PFCRace/proj.android/../../../extensions/spine/CCSkeleton.h \
  /Users/Joan/Development/cocos2d-x-2.2.2/projects/PFCRace/proj.android/../../../extensions/spine/CCSkeletonAnimation.h \
  jni/../../Classes/Curva.h jni/../../Classes/OptionsScene.h \
- jni/../../Classes/RankingScene.h jni/../../Classes/NDKHelper/NDKHelper.h \
+ jni/../../Classes/Color.h jni/../../Classes/RankingScene.h \
+ jni/../../Classes/NDKHelper/NDKHelper.h \
  jni/../../Classes/jansson/jansson.h \
  jni/../../Classes/jansson/jansson_config.h \
  jni/../../Classes/NDKHelper/NDKCallbackNode.h
@@ -1326,6 +1327,8 @@ jni/../../Classes/GameScene.h:
 jni/../../Classes/Curva.h:
 
 jni/../../Classes/OptionsScene.h:
+
+jni/../../Classes/Color.h:
 
 jni/../../Classes/RankingScene.h:
 
