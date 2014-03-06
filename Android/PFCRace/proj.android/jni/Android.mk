@@ -11,6 +11,7 @@ LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../Classes/HelloWorldScene.cpp \
                    ../../Classes/GameScene.cpp \
                    ../../Classes/OptionsScene.cpp \
+                   ../../Classes/RankingScene.cpp \
                    ../../Classes/GameManager.cpp \
                    ../../Classes/Curva.cpp \
                    ../../Classes/jansson/dump.c \

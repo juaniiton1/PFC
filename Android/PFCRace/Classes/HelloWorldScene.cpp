@@ -1,6 +1,7 @@
 #include "HelloWorldScene.h"
 #include "GameScene.h"
 #include "OptionsScene.h"
+#include "RankingScene.h"
 #include "NDKHelper.h"
 
 USING_NS_CC;
@@ -71,7 +72,8 @@ void HelloWorld::menuEnterCallback(CCObject* pSender)
 
 void HelloWorld::menuConfigCallback(CCObject* pSender)
 {
-	CCDirector::sharedDirector()->replaceScene(OptionsScene::scene());
+	//CCDirector::sharedDirector()->replaceScene(OptionsScene::scene());
+	CCDirector::sharedDirector()->replaceScene(RankingScene::scene());
 }
 
 void HelloWorld::menuCloseCallback(CCObject* pSender)

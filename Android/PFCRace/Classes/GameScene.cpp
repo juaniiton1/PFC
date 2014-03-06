@@ -156,7 +156,7 @@ bool GameScene::init()
 				  layerTime->setPosition(ccp(112.5, 175));
 				  layerTime->retain();
 
-	_labelTimeEnd = CCLabelTTF::create("Time:\n0:00:000", "Helvetica", 40, CCSizeMake(225, 100), kCCTextAlignmentCenter);
+	_labelTimeEnd = CCLabelTTF::create("Time:\n0:00:000", "Helvetica", 30, CCSizeMake(225, 100), kCCTextAlignmentCenter);
 	_labelTimeEnd->setColor(ccc3(0,0,0));
 	_labelTimeEnd->setPosition(ccp(112.5, 50));
 	layerTime->addChild(_labelTimeEnd);
@@ -521,12 +521,13 @@ void GameScene::gameLogic(float dt)
 		this->setAccelerometerEnabled(false);
 		this->unscheduleAllSelectors();
 
-		CCFiniteTimeAction* actionMove = CCMoveBy::create( (float) 3.0, ccp(0, 600) );
+		CCFiniteTimeAction* actionMove = CCMoveBy::create( (float) 1.0, ccp(0, 600) );
 		_car->runAction( CCSequence::create(actionMove, NULL) );
 
 		if (!_paused) {
 			_paused = true;
 
+			// Mostramos el tiempo final y el layer de final
 			int hs = _time/3600000;
 			int mins = (_time%3600000)/60000;
 			int ss = ((_time%3600000)%60000)/1000;
@@ -535,6 +536,30 @@ void GameScene::gameLogic(float dt)
 			_labelTimeEnd->setString(stringTime->getCString());
 
 			this->addChild(_layerEnd, 10);
+
+			// Metemos el record en la BBDD
+		    int nRecords = CCUserDefault::sharedUserDefault()->getIntegerForKey("map1");
+
+			bool trobat = false;
+			for (int i = nRecords; i >= 0 && !trobat; i--) {
+				CCString* iKeyTime = CCString::createWithFormat("map1time%d", i);
+				CCString* iKeyUser = CCString::createWithFormat("map1user%d", i);
+				CCString* iKeyTimeM1 = CCString::createWithFormat("map1time%d", i+1);
+				CCString* iKeyUserM1 = CCString::createWithFormat("map1user%d", i+1);
+				int iTime = CCUserDefault::sharedUserDefault()->getIntegerForKey(iKeyTime->getCString());
+				std::string iUser = CCUserDefault::sharedUserDefault()->getStringForKey(iKeyUser->getCString());
+				if (_time < iTime) {
+					// Actualizamos el siguiente
+					CCUserDefault::sharedUserDefault()->setIntegerForKey(iKeyTimeM1->getCString(), iTime);
+					CCUserDefault::sharedUserDefault()->setStringForKey(iKeyUserM1->getCString(), iUser);
+				} else {
+					trobat = true;
+					// Actualizamos el actual
+					CCUserDefault::sharedUserDefault()->setIntegerForKey(iKeyTimeM1->getCString(), _time);
+					CCUserDefault::sharedUserDefault()->setStringForKey(iKeyUserM1->getCString(), "Player 1");
+				}
+			}
+			if (nRecords < 5) CCUserDefault::sharedUserDefault()->setIntegerForKey("map1", nRecords+1);
 		}
 	}
 
