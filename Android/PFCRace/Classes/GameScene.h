@@ -41,6 +41,7 @@ protected:
 	int _fuerzaCurva;
 	long _time;
 	int _mCircuito;
+	int _level;
 
 public:
 

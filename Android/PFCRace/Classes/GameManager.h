@@ -22,6 +22,7 @@ protected:
 	bool connected;
 	char* ip;
 	char* port;
+	int level;
 
 public:
 	// Get instance of singleton
@@ -36,6 +37,8 @@ public:
 	char* getPort();
 	void setPort(const char* s);
 
+	int getLevel();
+	void setLevel(int k);
 };
 
 #endif // __HELLOWORLD_SCENE_H__

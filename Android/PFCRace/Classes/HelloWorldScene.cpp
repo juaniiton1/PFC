@@ -1,7 +1,8 @@
 #include "HelloWorldScene.h"
-#include "GameScene.h"
 #include "OptionsScene.h"
-#include "RankingScene.h"
+#include "LevelGameScene.h"
+#include "LevelRankingScene.h"
+#include "GameManager.h"
 #include "NDKHelper.h"
 
 USING_NS_CC;
@@ -76,12 +77,12 @@ bool HelloWorld::init()
 
 void HelloWorld::menuPlayCallback(CCObject* pSender)
 {
-	CCDirector::sharedDirector()->replaceScene(GameScene::scene());
+	CCDirector::sharedDirector()->replaceScene(LevelGameScene::scene());
 }
 
 void HelloWorld::menuRankCallback(CCObject* pSender)
 {
-	CCDirector::sharedDirector()->replaceScene(RankingScene::scene());
+	CCDirector::sharedDirector()->replaceScene(LevelRankingScene::scene());
 }
 
 void HelloWorld::menuSettCallback(CCObject* pSender)

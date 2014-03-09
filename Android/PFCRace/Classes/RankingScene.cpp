@@ -7,6 +7,7 @@
 
 #include "RankingScene.h"
 #include "HelloWorldScene.h"
+#include "GameManager.h"
 
 USING_NS_CC;
 
@@ -65,9 +66,12 @@ bool RankingScene::init()
 				label1->setPosition(ccp(vs.width/2, vs.height - 100));
 	this->addChild(label1, 5);
 
+	// Consultamos el nivel seleccionado para buscar en la bbdd
+	int level = GameManager::sharedGameManager()->getLevel();
+
 	for (int i = 1; i <= 5; i++) {
-		CCString* iKeyTime = CCString::createWithFormat("map1time%d", i);
-		CCString* iKeyUser = CCString::createWithFormat("map1user%d", i);
+		CCString* iKeyTime = CCString::createWithFormat("map%dtime%d", level, i);
+		CCString* iKeyUser = CCString::createWithFormat("map%duser%d", level, i);
 		int iTime = CCUserDefault::sharedUserDefault()->getIntegerForKey(iKeyTime->getCString());
 		std::string iUser = CCUserDefault::sharedUserDefault()->getStringForKey(iKeyUser->getCString());
 

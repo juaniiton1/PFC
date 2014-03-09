@@ -16,6 +16,7 @@ GameManager::GameManager()
 	connected = false;
 	ip = "0.0.0.0";
 	port = "0";
+	level = 1;
 }
 
 GameManager* GameManager::sharedGameManager()
@@ -59,4 +60,14 @@ char* GameManager::getPort()
 void GameManager::setPort(const char* c)
 {
 	port = (char*) c;
+}
+
+int GameManager::getLevel()
+{
+	return level;
+}
+
+void GameManager::setLevel(int k)
+{
+	level = k;
 }

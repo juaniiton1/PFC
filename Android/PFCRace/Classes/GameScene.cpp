@@ -71,6 +71,7 @@ GameScene::GameScene()
 	_fuerzaCurva = 0;
 	_time = 0;
 	_mCircuito = 0;
+	_level = 1;
 }
 
 GameScene::~GameScene()
@@ -237,8 +238,6 @@ bool GameScene::init()
 	// Anyadimos los elementos a la vista
 	this->addChild(_grass, 1);
 	this->addChild(_road, 2);
-	//this->addChild(_piano1, 2);
-	//this->addChild(_piano2, 2);
 	this->addChild(_car, 3);
 	this->addChild(menu, 5);
 	this->addChild(_labelVel, 5);
@@ -246,12 +245,70 @@ bool GameScene::init()
 	this->addChild(_labelTime, 5);
 	this->addChild(_labelStart, 5);
 
-	// Inicializamos el vector de curvas
-	_curvas.push_back(Curva(250, 200, 2, false));
-	_curvas.push_back(Curva(950, 200, 2, false));
-	_curvas.push_back(Curva(1650, 200, 2, false));
-	_curvas.push_back(Curva(2350, 200, 2, false));
-	_mCircuito = 2800;
+	// Consultamos el nivel seleccionado para buscar en la bbdd
+	_level = GameManager::sharedGameManager()->getLevel();
+
+	// Inicializamos el vector de curvas segun el nivel
+	if (_level == 1) {
+		_curvas.push_back(Curva(250, 200, 2, false));
+		_curvas.push_back(Curva(550, 200, 2, false));
+		_curvas.push_back(Curva(1200, 100, 4, false));
+		_curvas.push_back(Curva(1650, 200, 2, false));
+		_curvas.push_back(Curva(1950, 200, 2, false));
+		_curvas.push_back(Curva(2500, 200, 2, false));
+		_curvas.push_back(Curva(2800, 200, 2, false));
+		_mCircuito = 3000;
+
+	} else if (_level == 2) {
+		_curvas.push_back(Curva(100, 150, 2, false));
+		_curvas.push_back(Curva(350, 150, 2, false));
+		_curvas.push_back(Curva(700, 250, 1, false));
+		_curvas.push_back(Curva(1150, 150, 3, false));
+		_curvas.push_back(Curva(1500, 100, 4, false));
+		_curvas.push_back(Curva(1800, 100, 4, false));
+		_curvas.push_back(Curva(2000, 200, 2, true));
+		_curvas.push_back(Curva(2300, 50, 5, true));
+		_curvas.push_back(Curva(2750, 150, 2, true));
+		_curvas.push_back(Curva(3000, 50, 4, true));
+		_curvas.push_back(Curva(3100, 100, 2, false));
+		_curvas.push_back(Curva(3300, 100, 2, false));
+		_curvas.push_back(Curva(3500, 100, 4, false));
+		_curvas.push_back(Curva(3800, 250, 2, false));
+		_curvas.push_back(Curva(4250, 250, 1, false));
+		_curvas.push_back(Curva(4700, 150, 3, false));
+		_mCircuito = 5350;
+
+	} else { // _level == 3
+		_curvas.push_back(Curva(100, 50, 2, true));
+		_curvas.push_back(Curva(250, 50, 2, false));
+		_curvas.push_back(Curva(400, 100, 4, false));
+		_curvas.push_back(Curva(600, 100, 2, false));
+		_curvas.push_back(Curva(800, 50, 4, true));
+		_curvas.push_back(Curva(950, 50, 4, true));
+		_curvas.push_back(Curva(1100, 100, 2, false));
+		_curvas.push_back(Curva(1300, 50, 4, true));
+		_curvas.push_back(Curva(1450, 50, 4, true));
+		_curvas.push_back(Curva(1600, 100, 4, false));
+		_curvas.push_back(Curva(1900, 100, 2, false));
+		_curvas.push_back(Curva(2100, 50, 5, true));
+		_curvas.push_back(Curva(2450, 100, 2, true));
+		_curvas.push_back(Curva(2650, 50, 5, false));
+		_curvas.push_back(Curva(2900, 100, 4, false));
+		_curvas.push_back(Curva(3200, 150, 2, true));
+		_curvas.push_back(Curva(3450, 100, 4, true));
+		_curvas.push_back(Curva(3650, 50, 4, true));
+		_curvas.push_back(Curva(3800, 100, 4, false));
+		_curvas.push_back(Curva(4000, 50, 4, true));
+		_curvas.push_back(Curva(4150, 150, 2, true));
+		_curvas.push_back(Curva(4400, 100, 2, false));
+		_curvas.push_back(Curva(4600, 100, 2, false));
+		_curvas.push_back(Curva(4800, 100, 5, true));
+		_curvas.push_back(Curva(5000, 50, 2, true));
+		_curvas.push_back(Curva(5150, 100, 5, false));
+		_curvas.push_back(Curva(5450, 200, 5, true));
+		_mCircuito = 5850;
+	}
+
 
 	// Inicializamos el vector de coches en contra
 	_oppCars = new CCArray;
@@ -534,14 +591,15 @@ void GameScene::gameLogic(float dt)
 			this->addChild(_layerEnd, 10);
 
 			// Metemos el record en la BBDD
-		    int nRecords = CCUserDefault::sharedUserDefault()->getIntegerForKey("map1");
+			CCString* keyMap = CCString::createWithFormat("map%d", _level);
+		    int nRecords = CCUserDefault::sharedUserDefault()->getIntegerForKey(keyMap->getCString());
 
 			bool trobat = false;
 			for (int i = nRecords; i >= 0 && !trobat; i--) {
-				CCString* iKeyTime = CCString::createWithFormat("map1time%d", i);
-				CCString* iKeyUser = CCString::createWithFormat("map1user%d", i);
-				CCString* iKeyTimeM1 = CCString::createWithFormat("map1time%d", i+1);
-				CCString* iKeyUserM1 = CCString::createWithFormat("map1user%d", i+1);
+				CCString* iKeyTime = CCString::createWithFormat("map%dtime%d", _level, i);
+				CCString* iKeyUser = CCString::createWithFormat("map%duser%d", _level, i);
+				CCString* iKeyTimeM1 = CCString::createWithFormat("map%dtime%d", _level, i+1);
+				CCString* iKeyUserM1 = CCString::createWithFormat("map%duser%d", _level, i+1);
 				int iTime = CCUserDefault::sharedUserDefault()->getIntegerForKey(iKeyTime->getCString());
 				std::string iUser = CCUserDefault::sharedUserDefault()->getStringForKey(iKeyUser->getCString());
 				if (_time < iTime) {
@@ -556,7 +614,7 @@ void GameScene::gameLogic(float dt)
 					CCUserDefault::sharedUserDefault()->setStringForKey(iKeyUserM1->getCString(), username);
 				}
 			}
-			if (nRecords < 5) CCUserDefault::sharedUserDefault()->setIntegerForKey("map1", nRecords+1);
+			if (nRecords < 5) CCUserDefault::sharedUserDefault()->setIntegerForKey(keyMap->getCString(), nRecords+1);
 		}
 	}
 

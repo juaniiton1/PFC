@@ -203,7 +203,7 @@ obj/local/armeabi/objs/cocos2dcpp_shared/__/__/Classes/RankingScene.o: \
  /Users/Joan/Development/cocos2d-x-2.2.2/projects/PFCRace/proj.android/../../../cocos2dx/support/data_support/uthash.h \
  /Users/Joan/Development/cocos2d-x-2.2.2/projects/PFCRace/proj.android/../../../cocos2dx/support/component/CCComponent.h \
  /Users/Joan/Development/cocos2d-x-2.2.2/projects/PFCRace/proj.android/../../../cocos2dx/support/component/CCComponentContainer.h \
- jni/../../Classes/HelloWorldScene.h
+ jni/../../Classes/HelloWorldScene.h jni/../../Classes/GameManager.h
 
 jni/../../Classes/RankingScene.h:
 
@@ -614,3 +614,5 @@ jni/../../Classes/RankingScene.h:
 /Users/Joan/Development/cocos2d-x-2.2.2/projects/PFCRace/proj.android/../../../cocos2dx/support/component/CCComponentContainer.h:
 
 jni/../../Classes/HelloWorldScene.h:
+
+jni/../../Classes/GameManager.h:

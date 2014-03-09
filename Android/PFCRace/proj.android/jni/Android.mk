@@ -8,13 +8,15 @@ LOCAL_MODULE_FILENAME := libcocos2dcpp
 
 LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../Classes/AppDelegate.cpp \
-                   ../../Classes/HelloWorldScene.cpp \
+                   ../../Classes/Color.cpp \
+                   ../../Classes/Curva.cpp \
+                   ../../Classes/GameManager.cpp \
                    ../../Classes/GameScene.cpp \
+                   ../../Classes/HelloWorldScene.cpp \
+                   ../../Classes/LevelGameScene.cpp \
+                   ../../Classes/LevelRankingScene.cpp \
                    ../../Classes/OptionsScene.cpp \
                    ../../Classes/RankingScene.cpp \
-                   ../../Classes/GameManager.cpp \
-                   ../../Classes/Curva.cpp \
-                   ../../Classes/Color.cpp \
                    ../../Classes/jansson/dump.c \
                    ../../Classes/jansson/error.c \
                    ../../Classes/jansson/hashtable.c \
