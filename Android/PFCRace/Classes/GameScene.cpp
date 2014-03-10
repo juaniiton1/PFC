@@ -71,7 +71,10 @@ GameScene::GameScene()
 	_fuerzaCurva = 0;
 	_time = 0;
 	_mCircuito = 0;
-	_level = 1;
+	_level = GameManager::sharedGameManager()->getLevel();
+	_control = CCUserDefault::sharedUserDefault()->getIntegerForKey("control");
+	_frenando = false;
+	_acelerando = false;
 }
 
 GameScene::~GameScene()
@@ -229,9 +232,11 @@ bool GameScene::init()
 	// Creamos los indicadores de curva
 	_curvaI = CCSprite::create("curva_izq.png");
 	_curvaI->setPosition(ccp(vs.width/2, vs.height/4*3));
+	_curvaI->setOpacity(0);
 	_curvaI->retain();
 	_curvaD = CCSprite::create("curva_der.png");
 	_curvaD->setPosition(ccp(vs.width/2, vs.height/4*3));
+	_curvaD->setOpacity(0);
 	_curvaD->retain();
 
 
@@ -244,9 +249,9 @@ bool GameScene::init()
 	this->addChild(_labelDist, 5);
 	this->addChild(_labelTime, 5);
 	this->addChild(_labelStart, 5);
+	this->addChild(_curvaI, 5);
+	this->addChild(_curvaD, 5);
 
-	// Consultamos el nivel seleccionado para buscar en la bbdd
-	_level = GameManager::sharedGameManager()->getLevel();
 
 	// Inicializamos el vector de curvas segun el nivel
 	if (_level == 1) {
@@ -533,35 +538,37 @@ void GameScene::gameLogic(float dt)
 		int endCurva 	= startCurva + _curvas[_nextCurva].getLong();
 
 		// Comprobamos si viene curva 50 m antes de esta
-		if (_dist >= startCurva - 50 && startCurva - 50 >= distAnt) {
+		if (startCurva - 50 <= _dist && _dist < startCurva) {
 			if (_curvas[_nextCurva].getIzq()) {
-				this->addChild(_curvaI, 5);
+				_curvaI->setOpacity(200 - (startCurva - _dist) * (200 / 50));
 			} else {
-				this->addChild(_curvaD, 5);
+				_curvaD->setOpacity(200 - (startCurva - _dist) * (200 / 50));
 			}
 		}
 
 		// Si estamos en curva lo hacemos parpadear
-		else if (_dist >= startCurva && startCurva >= distAnt) {
-			CCRepeatForever *parpadeo = CCRepeatForever::create( CCBlink::create(1, 2) );
+		else if (distAnt <= startCurva && startCurva <= _dist) {
+			CCRepeatForever *parpadeo = CCRepeatForever::create( CCBlink::create(1, 6) );
 			if (_curvas[_nextCurva].getIzq()) {
 				_curvaI->runAction(parpadeo);
-				_fuerzaCurva = 1 * _curvas[_nextCurva].getFuerza();
+				_fuerzaCurva = 1 * (_vel/VEL_MAX) * _curvas[_nextCurva].getFuerza();
 			} else {
 				_curvaD->runAction(parpadeo);
-				_fuerzaCurva = -1 * _curvas[_nextCurva].getFuerza();
+				_fuerzaCurva = -1 * (_vel/VEL_MAX) * _curvas[_nextCurva].getFuerza();
 			}
 		}
 
 		// Si salimos de la curva quitamos el indicador
-		else if (_dist >= endCurva && endCurva >= distAnt) {
+		else if (distAnt <= endCurva && endCurva <= _dist) {
 
 			if (_curvas[_nextCurva].getIzq()) {
 				_curvaI->stopAllActions();
-				this->removeChild(_curvaI);
+				_curvaI->setOpacity(0);
+				//this->removeChild(_curvaI);
 			} else {
 				_curvaD->stopAllActions();
-				this->removeChild(_curvaD);
+				_curvaD->setOpacity(0);
+				//this->removeChild(_curvaD);
 			}
 			_nextCurva++;
 			_fuerzaCurva = 0;
@@ -641,29 +648,32 @@ void GameScene::didAccelerate(CCAcceleration* pAccelerationValue)
 
     ptTemp.x += accX * 10.0 + _fuerzaCurva;
 
-    // Calculamos velocidad nueva
-    if (accZ > 0) { // (movil boca abajo)
+    // Si el control lo tenemos en Acelerometro
+	if (_control == 0) {
+		// Calculamos velocidad nueva
+		if (accZ > 0) { // (movil boca abajo)
 
-    	// Freno de mano -> frenazo gradual segun hasta 0
-    	_vel = (_vel - VEL_FRE <= VEL_MIN) ? VEL_MIN : _vel - VEL_FRE;
+			// Freno de mano -> frenazo gradual segun hasta 0
+			_vel = (_vel - VEL_FRE <= VEL_MIN) ? VEL_MIN : _vel - VEL_FRE;
 
-    } else { // accZ <= 0 (movil boca arriba)
+		} else { // accZ <= 0 (movil boca arriba)
 
-    	if (accY > 0) { // (incilinado hacia delante | vertical girado)
+			if (accY > 0) { // (incilinado hacia delante | vertical girado)
 
-    		// Nitro -> aumentamos velocidad con mas aceleracion hasta maximo (100)
-    		_vel = (_vel + VEL_BOO > VEL_MAX) ? VEL_MAX : _vel + VEL_BOO;
+				// Nitro -> aumentamos velocidad con mas aceleracion hasta maximo (100)
+				_vel = (_vel + VEL_BOO > VEL_MAX) ? VEL_MAX : _vel + VEL_BOO;
 
-    	} else { // accY <= 0 (vertical hacia mi)
+			} else { // accY <= 0 (vertical hacia mi)
 
-    		// Acelerar/desacelerar -> modificamos velocidad gradualmente
-    		float velAcc = accZ * - VEL_MAX;
-			if (velAcc > _vel)
-				_vel = (_vel + VEL_INC > velAcc) ? velAcc : _vel + VEL_INC;
-			else
-				_vel = (_vel - VEL_INC < velAcc) ? velAcc : _vel - VEL_INC;
-    	}
-    }
+				// Acelerar/desacelerar -> modificamos velocidad gradualmente
+				float velAcc = accZ * - VEL_MAX;
+				if (velAcc > _vel)
+					_vel = (_vel + VEL_INC > velAcc) ? velAcc : _vel + VEL_INC;
+				else
+					_vel = (_vel - VEL_INC < velAcc) ? velAcc : _vel - VEL_INC;
+			}
+		}
+	}
 
     // Actualizamos posicion del coche
     // Tambien si toca al limite de la carretera, lo hacemos frenar
@@ -681,8 +691,10 @@ void GameScene::didAccelerate(CCAcceleration* pAccelerationValue)
     _car->setPosition(ptNext);
 }
 
-void GameScene::ccTouchesEnded(CCSet* touches, CCEvent* event)
+void GameScene::ccTouchesBegan(CCSet* touches, CCEvent* event)
 {
+	CCSize vs = CCDirector::sharedDirector()->getVisibleSize();
+
 	// Choose one of the touches to work with
 	CCTouch* touch = (CCTouch*)( touches->anyObject() );
 	CCPoint location = touch->getLocationInView();
@@ -691,16 +703,99 @@ void GameScene::ccTouchesEnded(CCSet* touches, CCEvent* event)
 	if (!_started) {
 		_started = true;
 
-	    // Llamamos cada 0,1 segundos a la logica del juego
-	    this->schedule( schedule_selector(GameScene::gameLogic), 0.1 );
-	    this->schedule( schedule_selector(GameScene::updateFrame) );
+		// Llamamos cada 0,1 segundos a la logica del juego
+		this->schedule( schedule_selector(GameScene::gameLogic), 0.1 );
+		this->schedule( schedule_selector(GameScene::updateFrame) );
+		this->schedule( schedule_selector(GameScene::soltar), 0.1 );
 
-	    // Activamos el acelerometro y el touch
-	    this->setAccelerometerEnabled(true);
+		// Activamos el acelerometro y el touch
+		this->setAccelerometerEnabled(true);
 
-	    // Quitamos el "Click to start"
-	    this->removeChild(_labelStart);
+		// Quitamos el "Click to start"
+		this->removeChild(_labelStart);
 	}
+
+	if (_control == 1 && _started && !_paused) {
+		// Comprobamos si hemos clickado en la derecha o izquierda
+
+		if (location.x > vs.width/2) { // acelerar
+			this->unschedule( schedule_selector(GameScene::soltar) );
+			this->schedule( schedule_selector(GameScene::acelerar), 0.1 );
+			_acelerando = true;
+
+		} else { // frenar
+			this->unschedule( schedule_selector(GameScene::soltar) );
+			this->schedule( schedule_selector(GameScene::frenar), 0.1 );
+			_frenando = true;
+		}
+	}
+}
+
+void GameScene::ccTouchesMoved(CCSet* touches, CCEvent* event)
+{
+	CCSize vs = CCDirector::sharedDirector()->getVisibleSize();
+
+	// Choose one of the touches to work with
+	CCTouch* touch = (CCTouch*)( touches->anyObject() );
+	CCPoint location = touch->getLocationInView();
+	location = CCDirector::sharedDirector()->convertToGL(location);
+
+	if (_control == 1 && _started && !_paused) {
+		// Comprobamos si nos cambiamos de lado con el click
+
+		if (location.x > vs.width/2 && _frenando) { // acelerar
+			this->unschedule( schedule_selector(GameScene::frenar) );
+			this->schedule( schedule_selector(GameScene::acelerar), 0.1 );
+			_frenando = false;
+			_acelerando = true;
+
+		} else if (location.x < vs.width/2 && _acelerando) { // frenar
+			this->unschedule( schedule_selector(GameScene::acelerar) );
+			this->schedule( schedule_selector(GameScene::frenar), 0.1 );
+			_acelerando = false;
+			_frenando = true;
+		}
+	}
+}
+
+void GameScene::ccTouchesEnded(CCSet* touches, CCEvent* event)
+{
+	CCSize vs = CCDirector::sharedDirector()->getVisibleSize();
+
+	// Choose one of the touches to work with
+	CCTouch* touch = (CCTouch*)( touches->anyObject() );
+	CCPoint location = touch->getLocationInView();
+	location = CCDirector::sharedDirector()->convertToGL(location);
+
+	if (_control == 1 && _started && !_paused) {
+		// Comprobamos donde dejamos de hacer click
+
+		if (location.x > vs.width/2) { // acelerar
+			this->unschedule( schedule_selector(GameScene::acelerar) );
+			this->schedule( schedule_selector(GameScene::soltar), 0.1 );
+			_acelerando = false;
+
+		} else if (location.x < vs.width/2) { // frenar
+			this->unschedule( schedule_selector(GameScene::frenar) );
+			this->schedule( schedule_selector(GameScene::soltar), 0.1 );
+			_frenando = false;
+		}
+	}
+}
+
+void GameScene::acelerar(float dt)
+{
+	_vel = (_vel + VEL_BOO < VEL_MAX) ? _vel + VEL_BOO : VEL_MAX;
+}
+
+void GameScene::frenar(float dt)
+{
+	_vel = (_vel - VEL_FRE > VEL_MIN) ? _vel - VEL_FRE : VEL_MIN;
+}
+
+void GameScene::soltar(float dt)
+{
+	_vel = (_vel - VEL_INC > VEL_MIN) ? _vel - VEL_INC : VEL_MIN;
 }
 
 void GameScene::menuPauseCallback(CCObject* pSender)
@@ -738,15 +833,17 @@ void GameScene::menuRestartCallback(CCObject* pSender)
 	_dist = 0;
 	_time = 0;
 	_nextCurva = 0;
+	_fuerzaCurva = 0;
+	_frenando = false;
+	_acelerando = false;
 
 	this->removeChild(_layerPause);
 	this->removeChild(_layerEnd);
 	this->addChild(_labelStart, 5);
 	_curvaI->stopAllActions();
-	this->removeChild(_curvaI);
+	_curvaI->setOpacity(0);
 	_curvaD->stopAllActions();
-	this->removeChild(_curvaD);
-
+	_curvaD->setOpacity(0);
 
 	_car->setPosition(ccp(vs.width/2, 50));
 	_labelVel->setString("0 km/h");

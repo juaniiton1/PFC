@@ -42,6 +42,9 @@ protected:
 	long _time;
 	int _mCircuito;
 	int _level;
+	int _control;
+	bool _frenando;
+	bool _acelerando;
 
 public:
 
@@ -58,11 +61,16 @@ public:
     void menuRestartCallback(CCObject* pSender);
     void menuExitCallback(CCObject* pSender);
 
-    void ccTouchesEnded(cocos2d::CCSet* touches, cocos2d::CCEvent* event);
+    virtual void ccTouchesBegan(cocos2d::CCSet* touches, cocos2d::CCEvent* event);
+    virtual void ccTouchesMoved(cocos2d::CCSet* touches, cocos2d::CCEvent* event);
+    virtual void ccTouchesEnded(cocos2d::CCSet* touches, cocos2d::CCEvent* event);
     virtual void didAccelerate(cocos2d::CCAcceleration* pAccelerationValue);
 
     void gameLogic(float dt);
     void updateFrame(float dt);
+    void acelerar(float dt);
+    void frenar(float dt);
+    void soltar(float dt);
 
     void oppCarDelete(cocos2d::CCNode* sender);
     void resumeRace(cocos2d::CCNode* sender);

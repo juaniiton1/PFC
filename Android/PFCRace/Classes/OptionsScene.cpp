@@ -31,6 +31,7 @@ CCScene* OptionsScene::scene()
 OptionsScene::OptionsScene()
 {
 	label_connected = NULL;
+	label_control = NULL;
 	input_ip = NULL;
 	input_port = NULL;
 	input_user = NULL;
@@ -101,7 +102,7 @@ bool OptionsScene::init()
 	std::string user = CCUserDefault::sharedUserDefault()->getStringForKey("user");
 
 	input_user = CCEditBox::create(editBoxSize, CCScale9Sprite::create("edittext3.9.png"));
-	input_user->setPosition(ccp(vs.width/2 + 125, vs.height/2 + 12.5 + 25));
+	input_user->setPosition(ccp(vs.width/2 + 125, vs.height/2 + 50 + 25));
 	input_user->setFontName("Helvetica");
 	input_user->setFontSize(25);
 	input_user->setFontColor(ccc3(50,50,50));
@@ -112,20 +113,32 @@ bool OptionsScene::init()
 	input_user->setInputFlag(kEditBoxInputFlagSensitive);
 
 	CCMenuItem* color_next = CCMenuItemImage::create("color_next.png", "color_next_h.png", this, menu_selector(OptionsScene::colorNextCallback));
-				color_next->setPosition(ccp(vs.width/2 + 125 + 75, vs.height/2 - 12.5 - 25));
+				color_next->setPosition(ccp(vs.width/2 + 125 + 75, vs.height/2));
 
 	CCMenuItem* color_prev = CCMenuItemImage::create("color_prev.png", "color_prev_h.png", this, menu_selector(OptionsScene::colorPrevCallback));
-				color_prev->setPosition(ccp(vs.width/2 + 125 - 75, vs.height/2 - 12.5 - 25));
+				color_prev->setPosition(ccp(vs.width/2 + 125 - 75, vs.height/2));
 
 	int iColor = CCUserDefault::sharedUserDefault()->getIntegerForKey("color");
 	Color color = colors[iColor];
 	color_preview = CCSprite::create("color_preview.png");
-	color_preview->setPosition( ccp(vs.width/2 + 125, vs.height/2 - 12.5 - 25) );
+	color_preview->setPosition( ccp(vs.width/2 + 125, vs.height/2) );
 	color_preview->setColor(ccc3(color.r, color.g, color.b));
+
+	CCMenuItem* control_next = CCMenuItemImage::create("color_next.png", "color_next_h.png", this, menu_selector(OptionsScene::controlNextCallback));
+				control_next->setPosition(ccp(vs.width/2 + 125 + 75, vs.height/2 - 50 - 25));
+
+	CCMenuItem* control_prev = CCMenuItemImage::create("color_prev.png", "color_prev_h.png", this, menu_selector(OptionsScene::controlPrevCallback));
+				control_prev->setPosition(ccp(vs.width/2 + 125 - 75, vs.height/2 - 50 - 25));
+
+	int iControl = CCUserDefault::sharedUserDefault()->getIntegerForKey("control");
+	CCString* control = CCString::create( (iControl == 0) ? "Accel." : "Touch" );
+	label_control = CCLabelTTF::create(control->getCString(), "fonts/FrancoisOne.ttf", 30, CCSizeMake(200, 50), kCCTextAlignmentCenter);
+	label_control->setColor(ccc3(0,0,0));
+	label_control->setPosition(ccp(vs.width/2 + 125, vs.height/2 - 50 - 25));
 
 	CCLabelTTF* label_player = CCLabelTTF::create("Jugador", "fonts/FrancoisOne.ttf", 30, CCSizeMake(200, 50), kCCTextAlignmentCenter);
 				label_player->setColor(ccc3(0,0,0));
-				label_player->setPosition(ccp(vs.width/2 + 125, vs.height/2 + 12.5 + 50 + 25 + 25));
+				label_player->setPosition(ccp(vs.width/2 + 125, vs.height/2 + 50 + 25 + 50 + 25));
 
 	label_connected = CCLabelTTF::create("No conectado", "fonts/FrancoisOne.ttf", 30, CCSizeMake(200, 50), kCCTextAlignmentCenter);
 	label_connected->setColor(ccc3(255,0,0));
@@ -151,15 +164,16 @@ bool OptionsScene::init()
 				button_connect->setPosition(ccp(vs.width/2 - 125, vs.height/2 - 12.5 - 50 - 25 - 25));
 
 	CCMenuItem* button_back = CCMenuItemImage::create("btn_aceptar.png", "btn_aceptar_h.png", this, menu_selector(OptionsScene::menuBackCallback));
-				button_back->setPosition(ccp(vs.width/2 + 125, vs.height/2 - 12.5 - 50 - 25 - 25));
+				button_back->setPosition(ccp(vs.width/2 + 125, vs.height/2 - 50 - 25 - 50 - 25));
 
-	CCMenu* menu = CCMenu::create(button_connect, button_back, color_next, color_prev, NULL);
+	CCMenu* menu = CCMenu::create(button_connect, button_back, color_next, color_prev, control_next, control_prev, NULL);
 			menu->setPosition(ccp(0,0));
 
 	this->addChild(con_smile, 5);
 	this->addChild(color_preview, 5);
 	this->addChild(label_connected, 5);
 	this->addChild(label_player, 5);
+	this->addChild(label_control, 5);
 	this->addChild(input_ip, 5);
 	this->addChild(input_port, 5);
 	this->addChild(input_user, 5);
@@ -236,4 +250,24 @@ void OptionsScene::colorPrevCallback(CCObject* pSender)
 	color_preview->setColor(ccc3(color.r, color.g, color.b));
 
 	CCUserDefault::sharedUserDefault()->setIntegerForKey("color", iColor);
+}
+
+void OptionsScene::controlNextCallback(CCObject* pSender)
+{
+	int iControl = CCUserDefault::sharedUserDefault()->getIntegerForKey("control");
+		iControl = (iControl + 1) % 2;
+	CCString* control = CCString::create( (iControl == 0) ? "Accel." : "Touch" );
+	label_control->setString(control->getCString());
+
+	CCUserDefault::sharedUserDefault()->setIntegerForKey("control", iControl);
+}
+
+void OptionsScene::controlPrevCallback(CCObject* pSender)
+{
+	int iControl = CCUserDefault::sharedUserDefault()->getIntegerForKey("control");
+		iControl = (iControl - 1 + 2) % 2;
+	CCString* control = CCString::create( (iControl == 0) ? "Accel." : "Touch" );
+	label_control->setString(control->getCString());
+
+	CCUserDefault::sharedUserDefault()->setIntegerForKey("control", iControl);
 }

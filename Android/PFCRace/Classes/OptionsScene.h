@@ -17,6 +17,7 @@ class OptionsScene : public cocos2d::CCLayerColor
 {
 protected:
 	cocos2d::CCLabelTTF* label_connected;
+	cocos2d::CCLabelTTF* label_control;
     cocos2d::extension::CCEditBox* input_ip;
     cocos2d::extension::CCEditBox* input_port;
     cocos2d::extension::CCEditBox* input_user;
@@ -43,6 +44,9 @@ public:
 
 	void colorNextCallback(CCObject* pSender);
 	void colorPrevCallback(CCObject* pSender);
+
+	void controlNextCallback(CCObject* pSender);
+	void controlPrevCallback(CCObject* pSender);
 
 };
 
