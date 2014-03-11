@@ -31,8 +31,8 @@ protected:
 	cocos2d::CCSprite* _piano1;
 	cocos2d::CCSprite* _piano2;
 	std::vector<Curva> _curvas;
-	cocos2d::CCSprite* _curvaI;
-	cocos2d::CCSprite* _curvaD;
+	cocos2d::CCArray* _curvasI;
+	cocos2d::CCArray* _curvasD;
 	float _vel;
 	float _dist;
 	bool _started;

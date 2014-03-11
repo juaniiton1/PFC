@@ -61,8 +61,8 @@ GameScene::GameScene()
 	_oppCars = NULL;
 	_piano1 = NULL;
 	_piano2 = NULL;
-	_curvaI = NULL;
-	_curvaD = NULL;
+	_curvasI = NULL;
+	_curvasD = NULL;
 	_vel = 0.0;
 	_dist = 0.0;
 	_started = false;
@@ -91,13 +91,13 @@ GameScene::~GameScene()
 		_layerEnd->release();
 		_layerEnd = NULL;
 	}
-	if (_curvaI) {
-		_curvaI->release();
-		_curvaI = NULL;
+	if (_curvasI) {
+		_curvasI->release();
+		_curvasI = NULL;
 	}
-	if (_curvaD) {
-		_curvaD->release();
-		_curvaD = NULL;
+	if (_curvasD) {
+		_curvasD->release();
+		_curvasD = NULL;
 	}
 	if (_labelStart) {
 		_labelStart->release();
@@ -230,15 +230,23 @@ bool GameScene::init()
 	_car->setPosition(ccp(vs.width/2, 50));
 
 	// Creamos los indicadores de curva
-	_curvaI = CCSprite::create("curva_izq.png");
-	_curvaI->setPosition(ccp(vs.width/2, vs.height/4*3));
-	_curvaI->setOpacity(0);
-	_curvaI->retain();
-	_curvaD = CCSprite::create("curva_der.png");
-	_curvaD->setPosition(ccp(vs.width/2, vs.height/4*3));
-	_curvaD->setOpacity(0);
-	_curvaD->retain();
+	_curvasI = new CCArray;
+	_curvasD = new CCArray;
 
+	for (int i = 1; i <= 5; i++) {
+		CCString* str_curvaI = CCString::createWithFormat("curva_izq_%d.png", i);
+		CCString* str_curvaD = CCString::createWithFormat("curva_der_%d.png", i);
+		CCSprite* curvaI = CCSprite::create(str_curvaI->getCString());
+				  curvaI->setOpacity(0);
+				  curvaI->setPosition(ccp(vs.width/2, vs.height/4*3));
+		CCSprite* curvaD = CCSprite::create(str_curvaD->getCString());
+				  curvaD->setOpacity(0);
+				  curvaD->setPosition(ccp(vs.width/2, vs.height/4*3));
+		_curvasI->addObject(curvaI);
+		_curvasD->addObject(curvaD);
+		this->addChild(curvaI, 5);
+		this->addChild(curvaD, 5);
+	}
 
 	// Anyadimos los elementos a la vista
 	this->addChild(_grass, 1);
@@ -249,8 +257,6 @@ bool GameScene::init()
 	this->addChild(_labelDist, 5);
 	this->addChild(_labelTime, 5);
 	this->addChild(_labelStart, 5);
-	this->addChild(_curvaI, 5);
-	this->addChild(_curvaD, 5);
 
 
 	// Inicializamos el vector de curvas segun el nivel
@@ -536,25 +542,30 @@ void GameScene::gameLogic(float dt)
 	{
 		int startCurva 	= _curvas[_nextCurva].getDist();
 		int endCurva 	= startCurva + _curvas[_nextCurva].getLong();
+		int fuerza 		= _curvas[_nextCurva].getFuerza();
 
 		// Comprobamos si viene curva 50 m antes de esta
 		if (startCurva - 50 <= _dist && _dist < startCurva) {
+
 			if (_curvas[_nextCurva].getIzq()) {
-				_curvaI->setOpacity(200 - (startCurva - _dist) * (200 / 50));
+				((CCSprite*) _curvasI->objectAtIndex(fuerza-1))->setOpacity(200 - (startCurva - _dist) * (200 / 50));
+
 			} else {
-				_curvaD->setOpacity(200 - (startCurva - _dist) * (200 / 50));
+				((CCSprite*) _curvasD->objectAtIndex(fuerza-1))->setOpacity(200 - (startCurva - _dist) * (200 / 50));
 			}
 		}
 
 		// Si estamos en curva lo hacemos parpadear
 		else if (distAnt <= startCurva && startCurva <= _dist) {
 			CCRepeatForever *parpadeo = CCRepeatForever::create( CCBlink::create(1, 6) );
+
 			if (_curvas[_nextCurva].getIzq()) {
-				_curvaI->runAction(parpadeo);
-				_fuerzaCurva = 1 * (_vel/VEL_MAX) * _curvas[_nextCurva].getFuerza();
+				((CCSprite*) _curvasI->objectAtIndex(fuerza-1))->runAction(parpadeo);
+				_fuerzaCurva = 1 * (_vel/VEL_MAX) * fuerza;
+
 			} else {
-				_curvaD->runAction(parpadeo);
-				_fuerzaCurva = -1 * (_vel/VEL_MAX) * _curvas[_nextCurva].getFuerza();
+				((CCSprite*) _curvasD->objectAtIndex(fuerza-1))->runAction(parpadeo);
+				_fuerzaCurva = -1 * (_vel/VEL_MAX) * fuerza;
 			}
 		}
 
@@ -562,13 +573,12 @@ void GameScene::gameLogic(float dt)
 		else if (distAnt <= endCurva && endCurva <= _dist) {
 
 			if (_curvas[_nextCurva].getIzq()) {
-				_curvaI->stopAllActions();
-				_curvaI->setOpacity(0);
-				//this->removeChild(_curvaI);
+				((CCSprite*) _curvasI->objectAtIndex(fuerza-1))->stopAllActions();
+				((CCSprite*) _curvasI->objectAtIndex(fuerza-1))->setOpacity(0);
+
 			} else {
-				_curvaD->stopAllActions();
-				_curvaD->setOpacity(0);
-				//this->removeChild(_curvaD);
+				((CCSprite*) _curvasD->objectAtIndex(fuerza-1))->stopAllActions();
+				((CCSprite*) _curvasD->objectAtIndex(fuerza-1))->setOpacity(0);
 			}
 			_nextCurva++;
 			_fuerzaCurva = 0;
@@ -840,17 +850,26 @@ void GameScene::menuRestartCallback(CCObject* pSender)
 	this->removeChild(_layerPause);
 	this->removeChild(_layerEnd);
 	this->addChild(_labelStart, 5);
-	_curvaI->stopAllActions();
-	_curvaI->setOpacity(0);
-	_curvaD->stopAllActions();
-	_curvaD->setOpacity(0);
+
+	CCObject *it = NULL;
+	CCARRAY_FOREACH(_curvasI, it)
+	{
+		CCSprite* auxCurva = dynamic_cast<CCSprite*>(it);
+				  auxCurva->stopAllActions();
+				  auxCurva->setOpacity(0);
+	}
+	CCARRAY_FOREACH(_curvasD, it)
+	{
+		CCSprite* auxCurva = dynamic_cast<CCSprite*>(it);
+				  auxCurva->stopAllActions();
+				  auxCurva->setOpacity(0);
+	}
 
 	_car->setPosition(ccp(vs.width/2, 50));
 	_labelVel->setString("0 km/h");
 	_labelDist->setString("0 m");
 	_labelTime->setString("0:00:000");
 
-	CCObject *it = NULL;
 	CCARRAY_FOREACH(_oppCars, it)
 	{
 		CCSprite *oppCar = dynamic_cast<CCSprite*>(it);

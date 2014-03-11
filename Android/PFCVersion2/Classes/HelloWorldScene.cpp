@@ -40,22 +40,21 @@ bool HelloWorld::init()
 	CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
 
 	// Fondo con la textura de madera
-	CCTexture2D *texture = CCTextureCache::sharedTextureCache()->addImage("purty_wood.png");
 	ccTexParams tp = { GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
-	texture->setTexParameters(&tp);
-	CCSprite *background = CCSprite::createWithTexture(texture,
-			CCRectMake(0, 0, visibleSize.width, visibleSize.height));
-	background->setPosition( ccp( visibleSize.width/2, visibleSize.height/2 ) );
+	CCTexture2D* texture = CCTextureCache::sharedTextureCache()->addImage("purty_wood.png");
+				 texture->setTexParameters(&tp);
+	CCSprite* background = CCSprite::createWithTexture(texture, CCRectMake(0, 0, visibleSize.width, visibleSize.height));
+			  background->setPosition( ccp( visibleSize.width/2, visibleSize.height/2 ) );
 
 	this->addChild(background, 1);
 
 	// www.colourlovers.com/palette/298635/wooden_color_pencil
-	CCMenuItem *pEnterItem  = CCMenuItemImage::create("icon_bulb.png", "icon_bulb_hover.png", this, menu_selector(HelloWorld::menuEnterCallback));
-	CCMenuItem *pConfigItem = CCMenuItemImage::create("icon_settings.png", "icon_settings_hover.png", this, menu_selector(HelloWorld::menuConfigCallback));
-	CCMenuItem *pCloseItem  = CCMenuItemImage::create("icon_exit.png", "icon_exit_hover.png", this, menu_selector(HelloWorld::menuCloseCallback));
+	CCMenuItem* pEnterItem  = CCMenuItemImage::create("icon_bulb.png", "icon_bulb_hover.png", this, menu_selector(HelloWorld::menuEnterCallback));
+	CCMenuItem* pConfigItem = CCMenuItemImage::create("icon_settings.png", "icon_settings_hover.png", this, menu_selector(HelloWorld::menuConfigCallback));
+	CCMenuItem* pCloseItem  = CCMenuItemImage::create("icon_exit.png", "icon_exit_hover.png", this, menu_selector(HelloWorld::menuCloseCallback));
 
 	CCMenu* pMenu = CCMenu::create(pEnterItem, pConfigItem, pCloseItem, NULL);
-	pMenu->alignItemsHorizontallyWithPadding(60);
+			pMenu->alignItemsHorizontallyWithPadding(60);
 
 	this->addChild(pMenu, 5);
 
