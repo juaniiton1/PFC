@@ -31,16 +31,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.easyndk.classes.AndroidNDKHelper;
-
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.easyndk.classes.AndroidNDKHelper;
+
 public class PFCRace extends Cocos2dxActivity{
 	
     protected void onCreate(Bundle savedInstanceState){
-		super.onCreate(savedInstanceState);	
+		super.onCreate(savedInstanceState);
+        AndroidNDKHelper.SetNDKReciever(this);
 	}
 
     public Cocos2dxGLSurfaceView onCreateView() {
@@ -56,52 +57,92 @@ public class PFCRace extends Cocos2dxActivity{
         System.loadLibrary("cocos2dcpp");
     }
     
-    public void SampleSelectorWithData(JSONObject prms) throws JSONException
+    public void SetNLeds(JSONObject prms) throws JSONException, IOException
     {
-    	String textToToast = "no funciona :(";
-		textToToast = prms.getString("text_to_toast");
-		Log.i("TEXT TO TOAST", textToToast);
-		
-    	// Toast.makeText(this, textToToast, Toast.LENGTH_SHORT).show();
-    }
-    
-    public void SendColors(JSONObject prms) throws JSONException, IOException
-    {
-    	Log.i("PRMS:", "Entro en send colors atentos!");
     	Log.i("PRMS:", prms.toString());
     	int nLeds = prms.getInt("nLeds");
-    	JSONArray colores = prms.getJSONArray("colores");
-    	Log.i("JSON:", "nLeds:"+nLeds+"; colores:"+colores.toString());
-
     	Connection.getInstance().writeSocket(1);
     	Connection.getInstance().writeSocket(nLeds);
-    	Connection.getInstance().writeSocket(2);
-    	
-    	for (int i = 1; i <= nLeds; i++)
-    	{
-    		// Mandamos del ultimo al primero
-    		int rgb 	= colores.getInt(nLeds-i);
-    		int red 	= Color.red(rgb);
-    		int green 	= Color.green(rgb);
-    		int blue 	= Color.blue(rgb);
-    		Connection.getInstance().writeSocket(red);
-    		Connection.getInstance().writeSocket(green);
-    		Connection.getInstance().writeSocket(blue);
-    	}
-    	
-    	Connection.getInstance().writeSocket(3);
     }
+    
+    public void JugadorEntra(JSONObject prms) throws JSONException, IOException
+    {
+    	Log.i("PRMS:", prms.toString());
+    	int iColor = prms.getInt("color");
+    	Connection.getInstance().writeSocket(2);
+    	Connection.getInstance().writeSocket(iColor);
+    }
+    
+    public void EmpiezaCarrera(JSONObject prms) throws JSONException, IOException
+    {
+    	Log.i("PRMS:", prms.toString());
+    	int iColor = prms.getInt("color");
+    	Connection.getInstance().writeSocket(3);
+    	Connection.getInstance().writeSocket(iColor);
+    }
+    
+    public void JugadorAvanza(JSONObject prms) throws JSONException, IOException
+    {
+    	Log.i("PRMS:", prms.toString());
+    	int iColor = prms.getInt("color");
+    	Connection.getInstance().writeSocket(4);
+    	Connection.getInstance().writeSocket(iColor);
+    }
+    
+    public void JugadorTermina(JSONObject prms) throws JSONException, IOException
+    {
+    	Log.i("PRMS:", prms.toString());
+    	int iColor = prms.getInt("color");
+    	Connection.getInstance().writeSocket(5);
+    	Connection.getInstance().writeSocket(iColor);
+    }
+    
+    public void JugadorSale(JSONObject prms) throws JSONException, IOException
+    {
+    	Log.i("PRMS:", prms.toString());
+    	int iColor = prms.getInt("color");
+    	Connection.getInstance().writeSocket(6);
+    	Connection.getInstance().writeSocket(iColor);
+    }
+    
+//    public void SendColors(JSONObject prms) throws JSONException, IOException
+//    {
+//    	Log.i("PRMS:", "Entro en send colors atentos!");
+//    	Log.i("PRMS:", prms.toString());
+//    	int nLeds = prms.getInt("nLeds");
+//    	JSONArray colores = prms.getJSONArray("colores");
+//    	Log.i("JSON:", "nLeds:"+nLeds+"; colores:"+colores.toString());
+//
+//    	Connection.getInstance().writeSocket(1);
+//    	Connection.getInstance().writeSocket(nLeds);
+//    	Connection.getInstance().writeSocket(2);
+//    	
+//    	for (int i = 1; i <= nLeds; i++)
+//    	{
+//    		// Mandamos del ultimo al primero
+//    		int rgb 	= colores.getInt(nLeds-i);
+//    		int red 	= Color.red(rgb);
+//    		int green 	= Color.green(rgb);
+//    		int blue 	= Color.blue(rgb);
+//    		Connection.getInstance().writeSocket(red);
+//    		Connection.getInstance().writeSocket(green);
+//    		Connection.getInstance().writeSocket(blue);
+//    	}
+//    	
+//    	Connection.getInstance().writeSocket(3);
+//    }
     
     public void SelectorConnect(JSONObject prms) throws JSONException
     {
     	String ip = prms.getString("ip");
     	String port = prms.getString("port");
+    	Log.i("CONEXION", "HELLO??? "+ip+" "+port);
     	new ConnectSocket(PFCRace.this).execute(ip, port);
     }
     
     public void ConnectionOk()
     {
-    	// Toast.makeText(this, "BIEN!", Toast.LENGTH_SHORT).show();
+    	Log.i("CONEXION", "CONNECTION OK!!!");
     	this.runOnGLThread(new Runnable()
     	{
     		@Override
@@ -115,7 +156,7 @@ public class PFCRace extends Cocos2dxActivity{
     
     public void ConnectionError()
     {
-    	// Toast.makeText(this, "MIERDA :/ pero bien :D", Toast.LENGTH_SHORT).show();
+    	Log.i("CONEXION", "CONNECTION ERROR! :(");
     	this.runOnGLThread(new Runnable()
     	{
     		@Override

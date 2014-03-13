@@ -75,6 +75,8 @@ GameScene::GameScene()
 	_control = CCUserDefault::sharedUserDefault()->getIntegerForKey("control");
 	_frenando = false;
 	_acelerando = false;
+	_tramo = 0;
+	_longTramo = 0;
 }
 
 GameScene::~GameScene()
@@ -320,12 +322,21 @@ bool GameScene::init()
 		_mCircuito = 5850;
 	}
 
-
 	// Inicializamos el vector de coches en contra
 	_oppCars = new CCArray;
 
 	// Activamos el acelerometro y el touch
     this->setTouchEnabled(true);
+
+    // Calculamos el tamanyo de cada tramo para informar al Arduino
+    int nleds = CCUserDefault::sharedUserDefault()->getIntegerForKey("nleds");
+    _longTramo = (int) (_mCircuito/nleds);
+
+    // Enviamos al Arduino que hemos entrado
+    int iColor = CCUserDefault::sharedUserDefault()->getIntegerForKey("color");
+	CCDictionary* prms = CCDictionary::create();
+				  prms->setObject(CCString::createWithFormat("%d", iColor), "color");
+	SendMessageWithParams(string("JugadorEntra"), prms);
 
     return true;
 }
@@ -489,6 +500,17 @@ void GameScene::gameLogic(float dt)
 	CCString* stringDist = CCString::createWithFormat("%d m", (int)_dist);
 	_labelDist->setString(stringDist->getCString());
 
+	// Cada distancia de tramo enviamos al Arduino que avanzamos una posicion
+	if ((int) (_dist/_longTramo) > _tramo) {
+
+	    // Enviamos al Arduino que hemos avanzado
+	    int iColor = CCUserDefault::sharedUserDefault()->getIntegerForKey("color");
+		CCDictionary* prms = CCDictionary::create();
+					  prms->setObject(CCString::createWithFormat("%d", iColor), "color");
+		SendMessageWithParams(string("JugadorAvanza"), prms);
+		_tramo = (int) (_dist/_longTramo);
+	}
+
 	// Tamanyos del coche y la carretera
 	CCRect roadRec 	= _road->boundingBox();
 	CCSize carSize 	= _car->getContentSize();
@@ -596,6 +618,12 @@ void GameScene::gameLogic(float dt)
 
 		if (!_paused) {
 			_paused = true;
+
+			// Enviamos al Arduino que hemos terminado
+			int iColor = CCUserDefault::sharedUserDefault()->getIntegerForKey("color");
+			CCDictionary* prms = CCDictionary::create();
+						  prms->setObject(CCString::createWithFormat("%d", iColor), "color");
+			SendMessageWithParams(string("JugadorTermina"), prms);
 
 			// Mostramos el tiempo final y el layer de final
 			int hs = _time/3600000;
@@ -723,6 +751,12 @@ void GameScene::ccTouchesBegan(CCSet* touches, CCEvent* event)
 
 		// Quitamos el "Click to start"
 		this->removeChild(_labelStart);
+
+		// Enviamos al Arduino que hemos empezado
+		int iColor = CCUserDefault::sharedUserDefault()->getIntegerForKey("color");
+		CCDictionary* prms = CCDictionary::create();
+					  prms->setObject(CCString::createWithFormat("%d", iColor), "color");
+		SendMessageWithParams(string("EmpiezaCarrera"), prms);
 	}
 
 	if (_control == 1 && _started && !_paused) {
@@ -881,4 +915,10 @@ void GameScene::menuRestartCallback(CCObject* pSender)
 void GameScene::menuExitCallback(CCObject* pSender)
 {
 	CCDirector::sharedDirector()->replaceScene(HelloWorld::scene());
+
+    // Enviamos al Arduino que hemos entrado
+    int iColor = CCUserDefault::sharedUserDefault()->getIntegerForKey("color");
+	CCDictionary* prms = CCDictionary::create();
+				  prms->setObject(CCString::createWithFormat("%d", iColor), "color");
+	SendMessageWithParams(string("JugadorSale"), prms);
 }

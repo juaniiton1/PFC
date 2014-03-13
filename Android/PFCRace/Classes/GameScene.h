@@ -45,6 +45,8 @@ protected:
 	int _control;
 	bool _frenando;
 	bool _acelerando;
+	int _tramo;
+	int _longTramo;
 
 public:
 

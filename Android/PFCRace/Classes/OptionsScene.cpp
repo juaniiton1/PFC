@@ -32,6 +32,7 @@ OptionsScene::OptionsScene()
 {
 	label_connected = NULL;
 	label_control = NULL;
+	label_nleds = NULL;
 	input_ip = NULL;
 	input_port = NULL;
 	input_user = NULL;
@@ -78,7 +79,7 @@ bool OptionsScene::init()
 	CCSize editBoxSize = CCSizeMake(200, 50);
 
 	input_ip = CCEditBox::create(editBoxSize, CCScale9Sprite::create("edittext2.9.png"));
-	input_ip->setPosition(ccp(vs.width/2 - 125, origin.y + vs.height/2 + 12.5 + 25));
+	input_ip->setPosition(ccp(vs.width/2 - 125, vs.height/2 + 50 + 25));
 	input_ip->setFontName("Helvetica");
 	input_ip->setFontSize(25);
 	input_ip->setFontColor(ccc3(50,50,50));
@@ -89,7 +90,7 @@ bool OptionsScene::init()
 	input_ip->setInputFlag(kEditBoxInputFlagSensitive);
 
 	input_port = CCEditBox::create(editBoxSize, CCScale9Sprite::create("edittext2.9.png"));
-	input_port->setPosition(ccp(vs.width/2 - 125, vs.height/2 - 12.5 - 25));
+	input_port->setPosition(ccp(vs.width/2 - 125, vs.height/2));
 	input_port->setFontName("Helvetica");
 	input_port->setFontSize(25);
 	input_port->setFontColor(ccc3(50,50,50));
@@ -111,6 +112,19 @@ bool OptionsScene::init()
 	input_user->setPlaceholderFontColor(ccc3(150,150,150));
 	input_user->setInputMode(kEditBoxInputModeSingleLine);
 	input_user->setInputFlag(kEditBoxInputFlagSensitive);
+
+
+	CCMenuItem* nleds_more = CCMenuItemImage::create("btn_more.png", "btn_more_h.png", this, menu_selector(OptionsScene::nledsMoreCallback));
+				nleds_more->setPosition(ccp(vs.width/2 - 125 + 75, vs.height/2 - 50 - 25));
+
+	CCMenuItem* nleds_less = CCMenuItemImage::create("btn_less.png", "btn_less_h.png", this, menu_selector(OptionsScene::nledsLessCallback));
+				nleds_less->setPosition(ccp(vs.width/2 - 125 - 75, vs.height/2 - 50 - 25));
+
+	int nleds = CCUserDefault::sharedUserDefault()->getIntegerForKey("nleds");
+	CCString* str_nleds = CCString::createWithFormat("%d", nleds);
+	label_nleds = CCLabelTTF::create(str_nleds->getCString(), "fonts/FrancoisOne.ttf", 30, CCSizeMake(200, 50), kCCTextAlignmentCenter);
+	label_nleds->setColor(ccc3(0,0,0));
+	label_nleds->setPosition(ccp(vs.width/2 - 125, vs.height/2 - 50 - 25));
 
 	CCMenuItem* color_next = CCMenuItemImage::create("color_next.png", "color_next_h.png", this, menu_selector(OptionsScene::colorNextCallback));
 				color_next->setPosition(ccp(vs.width/2 + 125 + 75, vs.height/2));
@@ -142,7 +156,7 @@ bool OptionsScene::init()
 
 	label_connected = CCLabelTTF::create("No conectado", "fonts/FrancoisOne.ttf", 30, CCSizeMake(200, 50), kCCTextAlignmentCenter);
 	label_connected->setColor(ccc3(255,0,0));
-	label_connected->setPosition(ccp(vs.width/2 - 125, vs.height/2 + 12.5 + 50 + 25 + 25));
+	label_connected->setPosition(ccp(vs.width/2 - 125, vs.height/2 + 50 + 25 + 50 + 25));
 
 	bool connected = GameManager::sharedGameManager()->getConnected();
 
@@ -161,12 +175,12 @@ bool OptionsScene::init()
 	}
 
 	CCMenuItem* button_connect = CCMenuItemImage::create("btn_conectar.png", "btn_conectar_h.png", this, menu_selector(OptionsScene::menuConnectCallback));
-				button_connect->setPosition(ccp(vs.width/2 - 125, vs.height/2 - 12.5 - 50 - 25 - 25));
+				button_connect->setPosition(ccp(vs.width/2 - 125, vs.height/2 - 50 - 25 - 50 - 25));
 
 	CCMenuItem* button_back = CCMenuItemImage::create("btn_aceptar.png", "btn_aceptar_h.png", this, menu_selector(OptionsScene::menuBackCallback));
 				button_back->setPosition(ccp(vs.width/2 + 125, vs.height/2 - 50 - 25 - 50 - 25));
 
-	CCMenu* menu = CCMenu::create(button_connect, button_back, color_next, color_prev, control_next, control_prev, NULL);
+	CCMenu* menu = CCMenu::create(button_connect, button_back, color_next, color_prev, control_next, control_prev, nleds_more, nleds_less, NULL);
 			menu->setPosition(ccp(0,0));
 
 	this->addChild(con_smile, 5);
@@ -174,6 +188,7 @@ bool OptionsScene::init()
 	this->addChild(label_connected, 5);
 	this->addChild(label_player, 5);
 	this->addChild(label_control, 5);
+	this->addChild(label_nleds, 5);
 	this->addChild(input_ip, 5);
 	this->addChild(input_port, 5);
 	this->addChild(input_user, 5);
@@ -229,6 +244,11 @@ void OptionsScene::menuBackCallback(CCObject* pSender)
 	// Guardamos el valor del nombre de jugador
 	CCUserDefault::sharedUserDefault()->setStringForKey("user", input_user->getText());
 
+	int nleds = CCUserDefault::sharedUserDefault()->getIntegerForKey("nleds");
+	CCDictionary* prms = CCDictionary::create();
+				  prms->setObject(CCString::createWithFormat("%d", nleds), "nLeds");
+	SendMessageWithParams(string("SetNLeds"), prms);
+
 	CCDirector::sharedDirector()->replaceScene(HelloWorld::scene());
 }
 
@@ -270,4 +290,24 @@ void OptionsScene::controlPrevCallback(CCObject* pSender)
 	label_control->setString(control->getCString());
 
 	CCUserDefault::sharedUserDefault()->setIntegerForKey("control", iControl);
+}
+
+void OptionsScene::nledsMoreCallback(CCObject* pSender)
+{
+	int nleds = CCUserDefault::sharedUserDefault()->getIntegerForKey("nleds");
+		nleds += 1;
+	CCString* str_nleds = CCString::createWithFormat("%d", nleds);
+	label_nleds->setString(str_nleds->getCString());
+
+	CCUserDefault::sharedUserDefault()->setIntegerForKey("nleds", nleds);
+}
+
+void OptionsScene::nledsLessCallback(CCObject* pSender)
+{
+	int nleds = CCUserDefault::sharedUserDefault()->getIntegerForKey("nleds");
+		nleds = (nleds - 1 < 2) ? 2 : nleds - 1;
+	CCString* str_nleds = CCString::createWithFormat("%d", nleds);
+	label_nleds->setString(str_nleds->getCString());
+
+	CCUserDefault::sharedUserDefault()->setIntegerForKey("nleds", nleds);
 }

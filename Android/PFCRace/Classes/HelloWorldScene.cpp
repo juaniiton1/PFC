@@ -72,6 +72,9 @@ bool HelloWorld::init()
     std::string user = CCUserDefault::sharedUserDefault()->getStringForKey("user");
     if (user == "") CCUserDefault::sharedUserDefault()->setStringForKey("user", "Player 1");
 
+    int nleds = CCUserDefault::sharedUserDefault()->getIntegerForKey("nleds");
+    if (nleds == 0) CCUserDefault::sharedUserDefault()->setIntegerForKey("nleds", 3);
+
     return true;
 }
 

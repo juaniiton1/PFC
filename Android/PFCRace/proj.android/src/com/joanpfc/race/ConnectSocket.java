@@ -5,21 +5,19 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 
-import com.easyndk.classes.AndroidNDKHelper;
-
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
 public class ConnectSocket extends AsyncTask<String, Void, Boolean> {
 
-	private Context mContext;
+	//private Context mContext;
 	private Socket mSocket;
 	private OutputStream mOutput;
 	private PFCRace myActivity;
 	
 	public ConnectSocket(Context context) {
-		mContext = context;
+		//mContext = context;
 		myActivity = (PFCRace) context;
 	}
 	

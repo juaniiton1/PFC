@@ -175,8 +175,8 @@ void OptionsScene::connectionError(CCNode *sender, void *data)
 void OptionsScene::menuConnectCallback(CCObject* pSender)
 {
 	CCDictionary* prms = CCDictionary::create();
-	prms->setObject(CCString::create(input_ip->getText()), "ip");
-	prms->setObject(CCString::create(input_port->getText()), "port");
+				  prms->setObject(CCString::create(input_ip->getText()), "ip");
+				  prms->setObject(CCString::create(input_port->getText()), "port");
 	SendMessageWithParams(string("SelectorConnect"), prms);
 }
 

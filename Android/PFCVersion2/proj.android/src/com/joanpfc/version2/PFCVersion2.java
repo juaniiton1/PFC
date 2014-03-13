@@ -24,8 +24,6 @@ THE SOFTWARE.
 package com.joanpfc.version2;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.Socket;
 
 import org.cocos2dx.lib.Cocos2dxActivity;
 import org.cocos2dx.lib.Cocos2dxGLSurfaceView;
@@ -36,7 +34,6 @@ import org.json.JSONObject;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.easyndk.classes.AndroidNDKHelper;
 
@@ -103,6 +100,7 @@ public class PFCVersion2 extends Cocos2dxActivity{
     
     public void SelectorConnect(JSONObject prms) throws JSONException
     {
+    	//Toast.makeText(this, "HELLO?", Toast.LENGTH_SHORT).show();
     	String ip = prms.getString("ip");
     	String port = prms.getString("port");
     	new ConnectSocket(PFCVersion2.this).execute(ip, port);
@@ -110,7 +108,7 @@ public class PFCVersion2 extends Cocos2dxActivity{
     
     public void ConnectionOk()
     {
-    	// Toast.makeText(this, "BIEN!", Toast.LENGTH_SHORT).show();
+    	//Toast.makeText(this, "BIEN!", Toast.LENGTH_SHORT).show();
     	this.runOnGLThread(new Runnable()
     	{
     		@Override
@@ -124,7 +122,7 @@ public class PFCVersion2 extends Cocos2dxActivity{
     
     public void ConnectionError()
     {
-    	// Toast.makeText(this, "MIERDA :/ pero bien :D", Toast.LENGTH_SHORT).show();
+    	//Toast.makeText(this, "MIERDA :/ pero bien :D", Toast.LENGTH_SHORT).show();
     	this.runOnGLThread(new Runnable()
     	{
     		@Override
