@@ -84,7 +84,7 @@ bool OptionsScene::init()
 	input_ip->setFontSize(25);
 	input_ip->setFontColor(ccc3(50,50,50));
 	input_ip->setPlaceHolder("IP:");
-	input_ip->setText("192.168.1.40");
+	input_ip->setText("192.168.1.41");
 	input_ip->setPlaceholderFontColor(ccc3(150,150,150));
 	input_ip->setInputMode(kEditBoxInputModeSingleLine);
 	input_ip->setInputFlag(kEditBoxInputFlagSensitive);

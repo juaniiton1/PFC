@@ -62,7 +62,7 @@ boolean connection;
 #define ARDUINO_TX_PIN  3
 
 // Inicializamos las librerias del wifi y el LED
-WiFlySerial wifi(ARDUINO_RX_PIN ,ARDUINO_TX_PIN);
+WiFlySerial wifi(ARDUINO_RX_PIN, ARDUINO_TX_PIN);
 ShiftBrite shift(datapin, latchpin, enablepin, clockpin); //construct
 
 boolean reconnect(){
@@ -111,7 +111,7 @@ boolean reconnect(){
  }
  //static IP because DHCP was not working
 //  success = wifi.setIP("147.83.173.40");
-  success = wifi.setIP("192.168.1.40");
+  success = wifi.setIP("192.168.1.41");
   if(success) Serial.println("--> IP set!");
   else {
     Serial.println("--> FAILED to set IP!");
@@ -220,7 +220,7 @@ void loop(){
       if(connection) Serial.println("Client connected!");
       else Serial.println("Internal error!");
     
-  }else{
+  } else {
           // Todo Your aduino application, what ever you want to do with the data
 	  if(wifi.available() > 0){
 	     data = wifi.read();
