@@ -11,18 +11,6 @@ public class Server {
 
 	Server() {}
 
-	// void sendMessage(String msg)
-	// {
-	//     try{
-	//         out.writeObject(msg);
-	//         out.flush();
-	//         System.out.println("client>" + msg);
-	//     }
-	//     catch(IOException ioException){
-	//         ioException.printStackTrace();
-	//     }
-	// }
-
 	void run() throws IOException
 	{
 		ServerSocket server = new ServerSocket(3456);
@@ -70,26 +58,13 @@ class ClientThread extends Thread{
 		try {
 			while ((c = in.read())!=-1){
 				System.out.println("Received: "+c);
-				out.println(""+c);
-				//sendMessage(c);
+				out.print((char)c);
+				out.flush();
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-
-
-	// void sendMessage(int msg)
-	// {
-	//     try{
-	//         out.writeObject(msg);
-	//         out.flush();
-	//         System.out.println("client>" + msg);
-	//     }
-	//     catch(IOException ioException){
-	//         ioException.printStackTrace();
-	//     }
-	// }
 
 }

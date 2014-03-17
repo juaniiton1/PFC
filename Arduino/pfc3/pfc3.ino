@@ -31,6 +31,8 @@ unsigned char data = 0;
 unsigned char nLeds = 0;
 // Codigo arbitrario
 unsigned char code = 0;
+// Tiempo en segundos
+unsigned long time = millis();
 
 // Wifi parameters
 
@@ -221,87 +223,90 @@ void loop(){
       else Serial.println("Internal error!");
     
   } else {
-          // Todo Your aduino application, what ever you want to do with the data
-	  if(wifi.available() > 0){
-	     data = wifi.read();
+      // Todo Your aduino application, what ever you want to do with the data
+      if(wifi.available() > 0){
+	 data = wifi.read();
 
-             Serial.print("data: ");
-             Serial.println(data);
-             
-             // CODES:
-             //  0: CODE
-             //  1: N LEDS
-             //  2: JUGADOR ENTRA
-             //  3: EMPIEZA LA CARRERA
-             //  4: JUGADOR AVANZA
-             //  5: JUGADOR TERMINA
-             //  6: JUGADOR SALE
-             
-             if (code == 0) {
-               if (data <= 6) {
-                 code = data;
-               } else {
-                 Serial.println("ERROR: CODE > 6");
-                 code = 0;
-               }
-             } else if (code == 1) { // N LEDS
-               nLeds = data;
-               vaciar();
-               code = 0;
-             } else if (code == 2) { // JUGADOR ENTRA
-               isPlayer[data] = true;
-               vaciar();
-               delay(200);
-               llenarLento(data);
-               vaciarLento();
-               for (int i=0; i < 7; i++) {
-                 if (isPlayer[i]) shift.sendColor(colors[i*3], colors[i*3+1], colors[i*3+2]);
-               }
-               code = 0;
-             } else if (code == 3) { // EMPIEZA LA CARRERA
-               started = true;
-               posicion[data] = 0;
-               code = 0;
-             } else if (code == 4) { // JUGADOR AVANZA
-               posicion[data] = posicion[data] + 1;
-               Serial.print("posicion: ");
-               Serial.println(posicion[data]);
-               code = 0;
-             } else if (code == 5) { // JUGADOR TERMINA
-               started = false;
-               vaciar();
-               llenarLento(data);
-               vaciarLento();
-               llenarLento(data);
-               vaciarLento();
-               llenarLento(data);
-               code = 0;
-             } else if (code == 6) { // JUGADOR SALE
-               started = false;
-               posicion[data] = 0;
-               isPlayer[data] = false;               
-               code = 0;
-             }
-             
-	  }
+         Serial.print("data: ");
+         Serial.println(data);
+         
+         // CODES:
+         //  0: CODE
+         //  1: N LEDS
+         //  2: JUGADOR ENTRA
+         //  3: EMPIEZA LA CARRERA
+         //  4: JUGADOR AVANZA
+         //  5: JUGADOR TERMINA
+         //  6: JUGADOR SALE
+         
+         if (code == 0) {
+           if (data <= 6) {
+             code = data;
+           } else {
+             Serial.println("ERROR: CODE > 6");
+             code = 0;
+           }
+         } else if (code == 1) { // N LEDS
+           nLeds = data;
+           code = 0;
+         } else if (code == 2) { // JUGADOR ENTRA
+           isPlayer[data] = true;
+           vaciar();
+           llenarLento(data);
+           vaciarLento();
+           for (int i=0; i < 7; i++) {
+             if (isPlayer[i]) shift.sendColor(colors[i*3], colors[i*3+1], colors[i*3+2]);
+           }
+           code = 0;
+         } else if (code == 3) { // EMPIEZA LA CARRERA
+           started = true;
+           posicion[data] = 0;
+           code = 0;
+         } else if (code == 4) { // JUGADOR AVANZA
+           posicion[data] = posicion[data] + 1;
+           Serial.print("posicion: ");
+           Serial.println(posicion[data]);
+           code = 0;
+         } else if (code == 5) { // JUGADOR TERMINA
+           started = false;
+           vaciar();
+           llenarLento(data);
+           vaciarLento();
+           llenarLento(data);
+           vaciarLento();
+           llenarLento(data);
+           code = 0;
+         } else if (code == 6) { // JUGADOR SALE
+           started = false;
+           posicion[data] = 0;
+           isPlayer[data] = false;               
+           code = 0;
+         }
+         
+      }
 
-          if (started) {
-            if (isPlayer[cont]) {
-              vaciar();
-              for (int i = nLeds-1; i >= 0; i--) {
-                if (i == posicion[cont]) {
-                  shift.sendColor(colors[cont*3], colors[cont*3+1], colors[cont*3+2]);
-                }
-                else {
-                  shift.sendColor(0, 0, 0);
-                }
-              }
+      if (started && millis() - time > 100) {
+        time = millis();
+
+        if (isPlayer[cont]) {
+          //vaciar();
+          for (int i = nLeds-1; i >= 0; i--) {
+            if (i == posicion[cont]) {
+              shift.sendColor(colors[cont*3], colors[cont*3+1], colors[cont*3+2]);
             }
-           
-            cont = (cont + 1) % 7;
-            Serial.print("cont: ");
-            Serial.println(cont);
+            else {
+              shift.sendColor(0, 0, 0);
+            }
           }
+        }
+        for (int i = 1; i < 7; i++) {
+          if (isPlayer[(cont+i)%7]) {
+            cont = (cont+i)%7;
+            break;
+          }
+        }
+        //cont = (cont + 1) % 7;
+      }
 
   }
 
